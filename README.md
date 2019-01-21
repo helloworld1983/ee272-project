@@ -1,4 +1,3 @@
-# EE272 Project - Graph Neural Network Accelerator
+EE272 Project - Graph Neural Network Accelerator
 ---
-Kevin Kiningham
-Ann Wu
+Ann, Wu, Kevin Kiningham
