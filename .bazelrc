@@ -1,0 +1,27 @@
+# Default build options
+build --strict_system_includes
+build --experimental_strict_action_env=true
+build --experimental_guard_against_concurrent_changes
+build --experimental_cc_skylark_api_enabled_packages=@gcn//tools,tools
+
+# Force new style behavior
+build --all_incompatible_changes
+
+# Use c++17 for all builds
+build --cxxopt='-std=c++17'
+build --host_cxxopt='-std=c++17'
+
+# Default test options.
+test --test_output=errors
+test --test_summary=terse
+
+### Debug symbols on OS X. ###
+# See https://github.com/bazelbuild/bazel/issues/2537
+build:apple_debug --spawn_strategy=standalone
+build:apple_debug --genrule_strategy=standalone
+build:apple_debug --compilation_mode=dbg
+
+# We don't actually use APPLE_DEBUG in code. It's just here to invalidate any
+# sandboxed .o files that might be in cache if a developer tried to build
+# with --compilation_mode=dbg instead of --config=apple_debug.
+build:apple_debug --copt="-DAPPLE_DEBUG"
