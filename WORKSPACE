@@ -1,7 +1,7 @@
 workspace(name = "gcn")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
 load("@gcn//tools/verilator:defs.bzl", "verilator_archive")
 
 git_repository(
@@ -14,6 +14,13 @@ git_repository(
     name = "com_github_gflags_gflags",
     remote = "https://github.com/gflags/gflags.git",
     tag = "v2.2.2",
+)
+
+new_git_repository(
+    name = "eigen",
+    build_file = "//third_party:eigen.BUILD",
+    remote = "https://github.com/eigenteam/eigen-git-mirror.git",
+    tag = "3.3.7",
 )
 
 verilator_archive(
