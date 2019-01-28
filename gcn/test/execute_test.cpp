@@ -18,6 +18,7 @@
 #include <iterator>
 
 using Matrix = Eigen::Matrix<uint16_t, Eigen::Dynamic, Eigen::Dynamic>;
+//using MapMatrix = Map<Matrix>;
 
 #define _MAX_FEAT_VAL   10
 #define _BATCH_SIZE     128
@@ -35,23 +36,79 @@ using Matrix = Eigen::Matrix<uint16_t, Eigen::Dynamic, Eigen::Dynamic>;
 class ExecuteTest : public ::testing::Test {
   protected:
       VerilatorDUT<Vexecute> dut;
+      void reset()
+      {
+          dut.poke(&Vexecute::clock, 0);
+          dut.poke(&Vexecute::reset_n, 0);
+          dut.step(21);
+          dut.poke(&Vexecute::reset_n, 1);
+      }
+
+      /*
+      uint16_t process()
+      {   // Should assert out_valid is low before each valid data comes in, or some handling
+          dut.poke(&Vexecute::in_data, I);
+          dut.poke(&Vexecute::in_weight, W);
+          dut.poke(&Vexecute::in_activate, A);
+          dut.poke(&Vexecute::in_valid, 1);
+
+          while (!dut.peek(&Vexecute::out_valid))
+              dut.step(10); // Add cycle counter here for perf
+
+          O_sim = dut.peekArray(&Vexecute::out_data);
+          return 0;
+      }
+      */
+
+  /*---------------------------------------------------------------------------------------------------------
+   * Notes:
+   *
+   * INPUT = (_NUM_FEAT*2, _BATCH_SIZE); // Embedding/features for current node
+   *    sum(NGHBORs)+INPUT (each _NUM_FEATx_BATCH_SIZE) are concatenated into (_NUM_FEAT*2 x _BATCH_SIZE) matrix.
+   *
+   * WEIGHT = (_NUM_FEAT*2 _NUM_FEAT); // Set of neighbor weights (same for all neighbors)
+   *    1st convolve: M = I_t * W = (_NUM_FEAT*2 x _BATCH_SIZE) ^ T * (_NUM_FEAT*2 x _NUM_FEAT) = (_BATCH_SIZE x _NUM_FEAT)
+   *
+   * ACTIVATE = (_NUM_FEAT, _NUM_FEAT); // Set of activations
+   *    2nd convolve: O = M * A = (_BATCH_SIZE x _NUM_FEAT) * (_NUM_FEAT x _NUM_FEAT) = (_BATCH_SIZE x _NUM_FEAT)
+   *---------------------------------------------------------------------------------------------------------*/
 
   /*
-  Matrix INPUT(_NUM_FEAT*2, _BATCH_SIZE); // Embedding/features for current node
-  // sum(NGHBORs)+INPUT (each _NUM_FEATx_BATCH_SIZE) are concatenated into (_NUM_FEAT*2 x _BATCH_SIZE) matrix.
-
-  Matrix WGHTS(_NUM_FEAT*2 _NUM_FEAT); // Set of neighbor weights (same for all neighbors)
-  // 1st convolve: M = I_t * W = (_NUM_FEAT*2 x _BATCH_SIZE) ^ T * (_NUM_FEAT*2 x _NUM_FEAT) = (_BATCH_SIZE x _NUM_FEAT)
-
-  Matrix ACTIV(_NUM_FEAT, _NUM_FEAT); // Set of activations
-  // 2nd convolve: O = M * A = (_BATCH_SIZE x _NUM_FEAT) * (_NUM_FEAT x _NUM_FEAT) = (_BATCH_SIZE x _NUM_FEAT)
+  // std array
+  std::array<std::array<uint16_t, _NUM_FEAT*2>, _BATCH_SIZE> I;
+  std::array<std::array<uint16_t, _NUM_FEAT*2>, _NUM_FEAT>   W;
+  std::array<std::array<uint16_t, _NUM_FEAT>,   _NUM_FEAT>   A;
+  std::array<std::array<uint16_t, _BATCH_SIZE>, _NUM_FEAT>   M_gold;
+  std::array<std::array<uint16_t, _BATCH_SIZE>, _NUM_FEAT>   O_gold;
   */
-  Matrix I = {_NUM_FEAT*2, _BATCH_SIZE};
-  Matrix W = {_NUM_FEAT*2, _NUM_FEAT};
-  Matrix A = {_NUM_FEAT, _NUM_FEAT};
 
-  Matrix M = {_BATCH_SIZE, _NUM_FEAT};
-  Matrix O = {_BATCH_SIZE, _NUM_FEAT};
+  // c array
+  std::array<uint16_t[_BATCH_SIZE], _NUM_FEAT*2> I;
+  std::array<uint16_t[_NUM_FEAT],   _NUM_FEAT*2> W;
+  std::array<uint16_t[_NUM_FEAT],   _NUM_FEAT>   A;
+
+  std::array<uint16_t[_NUM_FEAT], _BATCH_SIZE>   M_gold;
+  std::array<uint16_t[_NUM_FEAT], _BATCH_SIZE>   O_gold;
+  std::array<uint16_t[_NUM_FEAT], _BATCH_SIZE>   O_sim;
+
+  /* Reversed dimensions
+  std::array<uint16_t[_NUM_FEAT*2], _BATCH_SIZE> I;
+  std::array<uint16_t[_NUM_FEAT*2], _NUM_FEAT  > W;
+  std::array<uint16_t[_NUM_FEAT],   _NUM_FEAT>   A;
+
+  std::array<uint16_t[_BATCH_SIZE], _NUM_FEAT>   M_gold;
+  std::array<uint16_t[_BATCH_SIZE], _NUM_FEAT>   O_gold;
+  std::array<uint16_t[_BATCH_SIZE], _NUM_FEAT>   O_sim;
+  */
+
+  // Workaround: Populate matrices for gold computation
+  Matrix m_I = {_NUM_FEAT*2, _BATCH_SIZE};
+  Matrix m_W = {_NUM_FEAT*2, _NUM_FEAT};
+  Matrix m_A = {_NUM_FEAT, _NUM_FEAT};
+
+  Matrix m_M_gold = {_BATCH_SIZE, _NUM_FEAT};
+  Matrix m_O_gold = {_BATCH_SIZE, _NUM_FEAT};
+  Matrix m_O_sim  = {_BATCH_SIZE, _NUM_FEAT};
 
 };
 
@@ -80,25 +137,34 @@ TEST_F(ExecuteTest, Test) {
         while ( iss >> number )
             myNumbers.push_back( number );
 
-        // Assign vector to corresponding row in the correct Matrix
+        // Assign vector to corresponding row in the correct 2D array/Matrix
         if (input_counter > 0)
         {
             for (int i = 0; i < myNumbers.size(); i++)
-                I(input_idx, i) = myNumbers[i];
+            {
+                I[input_idx][i] = myNumbers[i];
+                m_I(input_idx, i) = myNumbers[i];
+            }
             input_counter--;
             input_idx++;
         }
         else if (weight_counter > 0)
         {
             for (int i = 0; i < myNumbers.size(); i++)
-                W(weight_idx, i) = myNumbers[i];
+            {
+                W[weight_idx][i] = myNumbers[i];
+                m_W(weight_idx, i) = myNumbers[i];
+            }
             weight_counter--;
             weight_idx++;
         }
         else
         {
             for (int i = 0; i < myNumbers.size(); i++)
-                A(activate_idx, i) = myNumbers[i];
+            {
+                A[activate_idx][i] = myNumbers[i];
+                m_A(activate_idx, i) = myNumbers[i];
+            }
             activate_idx++;
         }
     }
@@ -109,31 +175,18 @@ TEST_F(ExecuteTest, Test) {
   }
   else std::cout << "Unable to open input file";
 
-  std::cout << W << std::endl;
-
   // 2a. Compute gold results
-  M = (I.transpose() * W);
-  O = (M * A);
+  m_M_gold = (m_I.transpose() * m_W);
+  m_O_gold = (m_M_gold * m_A);
+  for (int i = 0; i < _BATCH_SIZE ; i++)
+    for (int j = 0; j < _NUM_FEAT ; j++)
+        O_gold[i][j] = m_O_gold(i, j);
 
-  // 2b. Run simulation (TODO)
-  /*
-  for (int i = 0; i < _NUM_FEAT*2; i++)
-    for (int j = 0; j < _BATCH_SIZE; j++)
-      //I(i,j) = atoi(input_tokens[i*_BATCH_SIZE + j]); // Cast to INT (FIXME may need casting update)
-      std::cout << input_tokens[i*_BATCH_SIZE + j] << std::endl;
-      //uint16_t myint = static_cast<uint16_t>(input_tokens[i*_BATCH_SIZE + j]);
+  // 2b. Run simulation
+  //process(I, W, A); // uncomment after logic completion
 
-  for (int i = 0; i < _NUM_FEAT*2; i++)
-    for (int j = 0; j < _NUM_FEAT; j++)
-      W(i,j) = int(weight_tokens[i*_NUM_FEAT + j]);
-
-  for (int i = 0; i < _NUM_FEAT; i++)
-    for (int j = 0; j < _NUM_FEAT; j++)
-      A(i,j) = int(activate_tokens[i*_NUM_FEAT + j]);
-  */
-
-  // 3. Assert equal results (TODO)
-
+  // 3. Assert equal results
+  //ASSERT_EQ(O_gold, O_sim); // uncomment after logic completion
 
 }
 
