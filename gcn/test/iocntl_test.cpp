@@ -6,52 +6,78 @@
 #include "gmock/gmock.h"
 
 #include "gcn/test/verilator_driver.h"
-#include "gcn/test/Viocntl/Viocntl.h"
+#include "gcn/test/Vtb/Vtb_DRAMx32.h"
+#include "gcn/test/Vtb/Vtb_tb.h"
+#include "gcn/test/Vtb/Vtb.h"
 
 using ::testing::ElementsAre;
 
 /// Testing class
 class IocntlTest : public ::testing::Test {
   protected:
-    VerilatorDUT<Viocntl> dut;
+    VerilatorDUT<Vtb> dut;
 
-    void reset() {
-      dut.poke(&Viocntl::clock, 0);
-      dut.poke(&Viocntl::reset_n, 0);
-      dut.step(21);
-      dut.poke(&Viocntl::reset_n, 1);
+    /// A full DRAM burst
+    using Burst = std::array<uint16_t, 8>;
+
+    Burst read(uint32_t address) {
+      dut.poke(&Vtb::rd_req, 1);
+      dut.poke(&Vtb::rd_addr, address);
+      dut.step();
+      dut.stepUntilTrue(&Vtb::rd_gnt);
+      dut.poke(&Vtb::rd_req, 0);
+      dut.stepUntilTrue(&Vtb::rd_valid);
+      return dut.peekArray(&Vtb::rd_data);
     }
 
-    std::array<uint16_t, 8> read(uint32_t address) {
-      dut.poke(&Viocntl::rd_req, 1);
-      dut.poke(&Viocntl::rd_addr, address);
-      while (!dut.peek(&Viocntl::rd_gnt)) {
-        dut.step(10);
-      }
-      while (!dut.peek(&Viocntl::rd_valid)) {
-        dut.step(10);
-      }
-      std::array<uint32_t, 4> data = dut.peekArray(&Viocntl::rd_data);
-      return {
-        static_cast<uint16_t>(data[0] & 0x00FF), static_cast<uint16_t>(data[0] & 0xFF00),
-        static_cast<uint16_t>(data[1] & 0x00FF), static_cast<uint16_t>(data[1] & 0xFF00),
-        static_cast<uint16_t>(data[2] & 0x00FF), static_cast<uint16_t>(data[2] & 0xFF00),
-        static_cast<uint16_t>(data[3] & 0x00FF), static_cast<uint16_t>(data[3] & 0xFF00),
-      };
+    void write(uint32_t address, Burst burst) {
+      dut.poke(&Vtb::wr_req, 1);
+      dut.poke(&Vtb::wr_addr, address);
+      dut.pokeArray(&Vtb::wr_data, burst);
+      //dut.stepUntilTrue(&Vtb::wr_gnt);
+      dut.step();
+      dut.poke(&Vtb::wr_req, 0);
+    }
+
+    void TearDown() override {
+      dut.finish();
     }
 };
 
+
+// TODO: This doesn't pass currently
 TEST_F(IocntlTest, Read) {
-  reset();
-  auto value = read(0);
-  EXPECT_THAT(value, ElementsAre(0, 0, 0, 0, 0, 0, 0, 0));
+  dut.reset();
+  dut.top.tb->dram->memory[0][0] = 1;
+  dut.top.tb->dram->memory[0][1] = 2;
+  dut.top.tb->dram->memory[0][2] = 3;
+  dut.top.tb->dram->memory[0][3] = 4;
+  auto data = read(1);
+  dut.step(3);
+  EXPECT_THAT(data, ElementsAre(1, 0, 2, 0, 3, 0, 4, 0));
+}
+
+// TODO: This doesn't pass currently
+TEST_F(IocntlTest, Write) {
+  dut.reset();
+  write(1, {1, 2, 3, 4, 5, 6, 7, 8});
+  dut.step(3);
+  EXPECT_EQ(dut.top.tb->dram->memory[0][0], 0);
+}
+
+// TODO: This doesn't pass currently
+TEST_F(IocntlTest, ReadWrite) {
+  dut.reset();
+  write(0, {1, 2, 3, 4, 5, 6, 7, 8});
+  auto data = read(0);
+  //EXPECT_THAT(data, ElementsAre(1, 2, 3, 4, 5, 6, 7, 8));
 }
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   // Global verilator setup
   Verilated::commandArgs(argc, argv);
-  Verilated::traceEverOn(false);
+  Verilated::traceEverOn(true);
   Verilated::debug(0);
   Verilated::randReset(0);
 

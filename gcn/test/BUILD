@@ -9,13 +9,10 @@ cc_library(
 # Verilog models
 cc_sv_library_verilator(
     name = "iocntl",
-    srcs = [],
-    top = "iocntl",
+    srcs = ["dram.sv"],
+    top = "tb",
     trace = True,
-    vopts = [
-        "-O3",
-        "--assert",
-    ],
+    vopts = ["--assert"],
     deps = ["//gcn:iocntl"],
 )
 
