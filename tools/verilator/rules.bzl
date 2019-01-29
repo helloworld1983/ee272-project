@@ -10,7 +10,7 @@ def _build_library_to_link(ctx, static_library):
         fail("Parameter 'static_library' cannot be None")
 
     return cc_common.create_library_to_link(
-        ctx = ctx,
+        actions = ctx.actions,
         library = static_library,
         artifact_category = "static_library",
     )
@@ -89,10 +89,16 @@ def _link_static_library(
     )
 
     # Build the linking info provider
-    linking_context = _create_linking_context(
-        ctx = ctx,
+    linking_context = cc_common.create_linking_context(
+        libraries_to_link = [
+            cc_common.create_library_to_link(
+                actions = ctx.actions,
+                feature_configuration = feature_configuration,
+                cc_toolchain = cc_toolchain,
+                static_library = static_library,
+            ),
+        ],
         user_link_flags = linkopts,
-        static_library = _build_library_to_link(ctx, static_library),
     )
 
     # Merge linking info for downstream rules
@@ -123,9 +129,6 @@ def _cc_compile_and_link_static_library(ctx, srcs, hdrs, deps, defines = []):
     compilation_contexts = [dep[CcInfo].compilation_context for dep in deps]
     if defines:
         compilation_contexts.append(cc_common.create_compilation_context(
-            ctx = ctx,
-            headers = depset([]),
-            system_includes = depset([]),
             defines = depset(defines),
         ))
 
@@ -151,7 +154,6 @@ def _cc_compile_and_link_static_library(ctx, srcs, hdrs, deps, defines = []):
 
     return [
         DefaultInfo(files = depset(linking_info.cc_linking_outputs.static_libraries)),
-        cc_common.create_cc_skylark_info(ctx = ctx),
         CcInfo(
             compilation_context = compilation_info.compilation_context,
             linking_context = linking_info.linking_context,
