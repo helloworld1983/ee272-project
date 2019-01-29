@@ -4,41 +4,6 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "CPP_LINK_STATIC_LIBRARY_ACTION_NAME")
 load("@//tools:verilog.bzl", "get_transitive_sources")
 
-def _build_library_to_link(ctx, static_library):
-    """Create a link library provider from a depset of static libraries"""
-    if static_library == None:
-        fail("Parameter 'static_library' cannot be None")
-
-    return cc_common.create_library_to_link(
-        actions = ctx.actions,
-        library = static_library,
-        artifact_category = "static_library",
-    )
-
-def _create_linking_context(ctx, user_link_flags, static_library):
-    """Create a CcLinkingInfo provider from a depset of static libraries"""
-    if user_link_flags != None:
-        user_link_flags = depset(user_link_flags)
-
-    static_libraries = depset([static_library])
-    link_params_for_dynamic_library = cc_common.create_cc_link_params(
-        ctx = ctx,
-        user_link_flags = user_link_flags,
-        libraries_to_link = static_libraries,
-    )
-    link_params_for_executable = cc_common.create_cc_link_params(
-        ctx = ctx,
-        libraries_to_link = static_libraries,
-    )
-
-    return cc_common.create_linking_context(
-        ctx = ctx,
-        dynamic_mode_params_for_dynamic_library = link_params_for_dynamic_library,
-        dynamic_mode_params_for_executable = link_params_for_executable,
-        static_mode_params_for_dynamic_library = link_params_for_dynamic_library,
-        static_mode_params_for_executable = link_params_for_executable,
-    )
-
 def _link_static_library(
         ctx,
         feature_configuration,
