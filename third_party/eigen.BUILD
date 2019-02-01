@@ -20,11 +20,8 @@ EIGEN_RESTRICTED_FILES = [
 # Notable transitive dependencies of restricted files inside Eigen/...
 EIGEN_RESTRICTED_DEPS = [
     "Eigen/Eigen",
-    "Eigen/IterativeLinearSolvers",
     "Eigen/MetisSupport",
-    "Eigen/Sparse",
     "Eigen/SparseCholesky",
-    "Eigen/SparseLU",
 ]
 
 EIGEN_FILES = [

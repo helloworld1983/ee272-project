@@ -175,6 +175,13 @@ cc_library(
 )
 
 cc_library(
+    name = "svdpi",
+    hdrs = ["include/vltstd/svdpi.h"],
+    strip_include_prefix = "include/vltstd",
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
     name = "libverilator",
     srcs = [
         "include/gtkwave/fastlz.h",
@@ -182,6 +189,8 @@ cc_library(
         "include/gtkwave/fstapi.h",
         "include/gtkwave/lz4.h",
         "include/gtkwave/wavealloca.h",
+        "include/vltstd/svdpi.h",
+        "include/verilated_dpi.cpp",
         "include/verilated.cpp",
         "include/verilated_fst_c.cpp",
         "include/verilated_imp.h",
@@ -212,15 +221,7 @@ cc_library(
         "-Wno-deprecated-register",
         "-Dregister= ",
     ],
-)
-
-cc_library(
-    name = "svdpi",
-    hdrs = [
-        "include/vltstd/svdpi.h",
-    ],
-    strip_include_prefix = "include/vltstd",
-    visibility = ["//visibility:public"],
+    deps = [":svdpi"],
 )
 
 cc_binary(
