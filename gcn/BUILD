@@ -6,3 +6,8 @@ sv_library(
     name = "iocntl",
     srcs = ["iocntl.sv"],
 )
+
+sv_library(
+    name = "execute",
+    srcs = ["execute.sv"],
+)

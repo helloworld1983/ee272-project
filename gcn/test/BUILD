@@ -16,6 +16,19 @@ cc_sv_library_verilator(
     deps = ["//gcn:iocntl"],
 )
 
+cc_sv_library_verilator(
+    name = "execute",
+    srcs = [],
+    top = "execute",
+    trace = True,
+    vopts = [
+        "-O3",
+        "--assert",
+    ],
+    deps = ["//gcn:execute"],
+)
+
+
 # Actual tests
 cc_test(
     name = "iocntl_test",
@@ -31,8 +44,12 @@ cc_test(
     name = "execute_test",
     srcs = ["execute_test.cpp"],
     deps = [
+        ":execute",
         ":verilator_driver",
         "@com_github_google_googletest//:gtest",
         "@eigen//:eigen",
+    ],
+    data = [
+        "testvectors/data.txt",
     ],
 )

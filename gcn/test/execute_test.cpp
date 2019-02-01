@@ -44,12 +44,11 @@ class ExecuteTest : public ::testing::Test {
           dut.poke(&Vexecute::reset_n, 1);
       }
 
-      /*
       uint16_t process()
       {   // Should assert out_valid is low before each valid data comes in, or some handling
-          dut.poke(&Vexecute::in_data, I);
-          dut.poke(&Vexecute::in_weight, W);
-          dut.poke(&Vexecute::in_activate, A);
+          dut.pokeArray(&Vexecute::in_data, I);
+          dut.pokeArray(&Vexecute::in_weight, W);
+          dut.pokeArray(&Vexecute::in_activate, A);
           dut.poke(&Vexecute::in_valid, 1);
 
           while (!dut.peek(&Vexecute::out_valid))
@@ -58,7 +57,6 @@ class ExecuteTest : public ::testing::Test {
           O_sim = dut.peekArray(&Vexecute::out_data);
           return 0;
       }
-      */
 
   /*---------------------------------------------------------------------------------------------------------
    * Notes:
