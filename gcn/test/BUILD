@@ -17,6 +17,17 @@ cc_sv_library_verilator(
 )
 
 cc_sv_library_verilator(
+    name = "mac4x4",
+    top = "mac4x4",
+    trace = False,
+    vopts = [
+        "-O3",
+        "--assert",
+    ],
+    deps = ["//gcn:mac4x4"],
+)
+
+cc_sv_library_verilator(
     name = "execute",
     srcs = [],
     top = "execute",
@@ -35,6 +46,16 @@ cc_test(
     srcs = ["iocntl_test.cpp"],
     deps = [
         ":iocntl",
+        ":verilator_driver",
+        "@com_github_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "mac4x4_test",
+    srcs = ["mac4x4_test.cpp"],
+    deps = [
+        ":mac4x4",
         ":verilator_driver",
         "@com_github_google_googletest//:gtest",
     ],
