@@ -20,8 +20,8 @@ module mac4x4 (
   input       [ 4:0] bidx, // weight index
   input  [3:0][15:0] c,    // accumulator input
 
-  output             r_v, // Is result data valid
-  output [3:0][15:0] r    // result data
+  output reg             r_v, // Is result data valid
+  output reg [3:0][15:0] r    // result data
 );
   // State machine
   always_ff @(posedge clock or negedge reset_n) begin
@@ -33,7 +33,8 @@ module mac4x4 (
   end
 
   // Compute
-  reg b[3:0][3:0][31:0];
+  reg [3:0][3:0][31:0] b;
+
   genvar j;
   generate
     for (j = 0; j < 4; j = j + 1) begin
