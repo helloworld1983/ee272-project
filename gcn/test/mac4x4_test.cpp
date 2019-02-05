@@ -18,7 +18,7 @@ void pokeVec4(QData* vec, const Vec4& data) {
 }
 
 void peekVec4(Vec4& result, const QData* vec) {
-  result = Vec4::Map(reinterpret_cast<Vec4::Scalar*>(vec));
+  result = Vec4::Map(reinterpret_cast<const Vec4::Scalar*>(vec));
 }
 
 class Mac4x4Test : public ::testing::Test {
