@@ -58,6 +58,7 @@ cc_test(
         ":mac4x4",
         ":verilator_driver",
         "@com_github_google_googletest//:gtest",
+        "@eigen//:eigen",
     ],
 )
 

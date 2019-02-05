@@ -1,55 +1,115 @@
+`default_nettype none
 // Compute AxB + C over N cycles
 // We can express the matrix multiply as follows
 //
 // for i = 0:I
 //   for j = 0:J
 //     for k = 0:K
-//       R[i,j] = A[i,k] * B[k,j] + C[i,j]
+//       X[i,j] = A[i,k] * B[k,j] + C[i,j]
 //
 // In this case, all B[k, j] values are stored in registers and on clock cycle c we recive
-// [A[c, 0], ..., A[c, K-1]] and compute [R[c, 0], ..., R[c, J-1]]
+// [A[c, 0], ..., A[c, K-1]] and compute [X[c, 0], ..., X[c, J-1]]
 module mac4x4 (
   input clock,
   input reset_n,
 
   // Control
-  input en, // enable operation
+  input wen, // enable writing to the internal weight buffer
+  input ren, // enable reading from the internal weight buffer
+  input sel, // Selects the weight buffer to READ
 
-  // data IO
-  input  [3:0][15:0] a,    // input data
-  input       [ 4:0] bidx, // weight index
-  input  [3:0][15:0] c,    // accumulator input
+  // Weight inputs
+  input [1:0]       wbcol, // Column of the 4x4 array two write to
+  input [4:0]       wbidx, // weight index for writing
+  input [4:0]       rbidx, // weight index for reading
+  input [3:0][15:0] wb,    // weights to write (if enabled)
 
-  output reg             r_v, // Is result data valid
-  output reg [3:0][15:0] r    // result data
+  // Data inputs
+  input [3:0][15:0] a, // data
+  input [3:0][15:0] c, // accumulator
+
+  // Data Output
+  output [3:0][15:0] x // result
 );
-  // State machine
-  always_ff @(posedge clock or negedge reset_n) begin
-    if (~reset_n) begin
-      r_v <= 1'b0;
-    end else begin
-      r_v <= en;
-    end
-  end
-
-  // Compute
-  reg [3:0][3:0][31:0] b;
-
   genvar j;
   generate
-    for (j = 0; j < 4; j = j + 1) begin
-      always_ff @(posedge clock or negedge reset_n) begin
-        if (~reset_n) begin
-          r[j] <= 'd0;
-        end else if(en) begin
-          // R_ij = SUM(aik * bkj
-          r[j] <= a[0] * b[0][j][bidx]
-                + a[1] * b[1][j][bidx]
-                + a[2] * b[2][j][bidx]
-                + a[3] * b[3][j][bidx]
-                + c[j];
-        end
-      end
-    end
+    for (j = 0; j < 4; j = j + 1) begin : SLICE
+      // Compute which slice should be written to
+      wire wen_slice = wen && (wbcol == j);
+
+      wire [3:0][15:0] rb;
+      mac4x4_buffer buffer (
+        .clock,
+        .reset_n,
+        .sel  (sel),
+        .wen  (wen_slice),
+        .waddr(wbidx),
+        .wdata(wb),
+        .ren  (ren),
+        .raddr(rbidx),
+        .rdata(rb)
+      );
+
+      mac4x4_slice mac (
+        .clock,
+        .reset_n,
+        .a(a),
+        .b(rb),
+        .c(c[j]),
+        .x(x[j])
+      );
+    end : SLICE
   endgenerate
+endmodule
+
+module mac4x4_buffer (
+  input clock,
+  input reset_n,
+
+  // Control
+  input sel, // Select the buffer to READ FROM
+
+  // Write interface
+  input             wen,   // Write enable
+  input [4:0]       waddr, // Write address
+  input [3:0][15:0] wdata,
+
+  // Read interface
+  input              ren,   // Read enable
+  input  [4:0]       raddr, // Read address
+  output [3:0][15:0] rdata
+);
+  // Read/Write data
+  reg [31:0][3:0][15:0] data [0:1];
+  reg       [3:0][15:0] rbuf;
+  always_ff @(posedge clock) begin
+    if (ren) rbuf <= data[sel][raddr];
+    if (wen) data[!sel][raddr] <= wdata;
+  end
+
+  // Output just the read buffer
+  assign rdata = rbuf;
+endmodule
+
+module mac4x4_slice (
+  input clock,
+  input reset_n,
+
+  // Data input
+  input [3:0][15:0] a,
+  input [3:0][15:0] b,
+  input      [15:0] c,
+
+  // Data output
+  output reg [15:0] x
+);
+  always_ff @(posedge clock or negedge reset_n) begin
+    if (~reset_n) begin
+      x <= 'd0;
+    end else begin
+      x <= a[0] * b[0] + a[1] * b[1]
+         + a[2] * b[2] + a[3] * b[3]
+         + c;
+    end
+  end
 endmodule
