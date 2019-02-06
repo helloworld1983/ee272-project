@@ -77,18 +77,14 @@ module mac4x4_buffer (
   // Read interface
   input  wire             ren,   // Read enable
   input  wire [4:0]       raddr, // Read address
-  output wire [3:0][15:0] rdata
+  output reg  [3:0][15:0] rdata
 );
   // Read/Write data
   reg [31:0][3:0][15:0] data [0:1];
-  reg       [3:0][15:0] rbuf;
   always_ff @(posedge clock) begin
-    if (ren) rbuf <= data[sel][raddr];
-    if (wen) data[!sel][raddr] <= wdata;
+    if (ren) rdata <= data[sel][raddr];
+    if (wen) data[!sel][waddr] <= wdata;
   end
-
-  // Output just the read buffer
-  assign rdata = rbuf;
 endmodule
 
 module mac4x4_slice (
