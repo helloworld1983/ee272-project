@@ -16,3 +16,9 @@ sv_library(
     name = "mac4x4",
     srcs = ["mac4x4.sv"],
 )
+
+sv_library(
+    name = "globalbuffer",
+    srcs = ["globalbuffer.sv",
+            "floparray.sv"],
+)
