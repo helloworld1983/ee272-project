@@ -20,7 +20,7 @@ sv_library(
 sv_library(
     name = "mac16x16",
     srcs = ["mac16x16.sv"],
-    deps = [":mac4x4.sv"],
+    deps = [":mac4x4"],
 )
 
 sv_library(

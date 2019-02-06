@@ -1,5 +1,4 @@
 `default_nettype none
-
 module mac16x16 (
   input clock,
   input reset_n,
@@ -16,17 +15,18 @@ module mac16x16 (
   input wire [3:0][3:0][15:0] wb, // weights to write (if enabled)
 
   // Data inputs
-  input wire [3:0][15:0] a, // data
-  input wire [3:0][15:0] c, // accumulator
+  input wire [3:0][3:0][15:0] a, // data
+  input wire [3:0][3:0][15:0] c, // accumulator
 
   // Data Output
-  output wire [3:0][15:0] x // result
+  output wire [3:0][3:0][15:0] x // result
 );
-  genvar i;
+  // The 16x16 array is decomposed into 16 4x4 mac arrays
+  genvar i, j;
   generate
     for (i = 0; i < 4; i = i + 1) begin : ROW
-      wire [3:0][15:0] c_tile;
-      wire [3:0][15:0] x_tile;
+      wire [3:0][3:0][15:0] c_tile;
+      wire [3:0][3:0][15:0] x_tile;
 
       if (i == 0) begin
         assign c_tile = c;
@@ -34,23 +34,25 @@ module mac16x16 (
         assign c_tile = ROW[i-1].x_tile;
       end
 
-      mac4x4 mac (
-        .clock,
-        .reset_n,
+      for (j = 0; j < 4; j = j + 1) begin : COL
+        mac4x4 mac (
+          .clock,
+          .reset_n,
 
-        .sel  (sel),
-        .wen  (wen),
-        .wbcol(wbcol),
-        .wbidx(wbidx),
-        .wdata(wdata[i]),
-        .ren  (ren),
-        .raddr(rbidx),
-        .rdata(rb[i]),
+          .sel  (sel),
+          .wen  (wen),
+          .ren  (ren),
 
-        .a(a[i]),
-        .c(c_tile),
-        .x(x_tile)
-      );
+          .wbcol(wbcol),
+          .wbidx(wbidx),
+          .wb   (wb[i]),
+          .rbidx(rbidx),
+
+          .a(a[i]),
+          .c(c_tile[j]),
+          .x(x_tile[j])
+        );
+      end : COL
     end : ROW
   endgenerate
 
