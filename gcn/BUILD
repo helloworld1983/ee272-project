@@ -18,7 +18,15 @@ sv_library(
 )
 
 sv_library(
+    name = "mac16x16",
+    srcs = ["mac16x16.sv"],
+    deps = [":mac4x4.sv"],
+)
+
+sv_library(
     name = "globalbuffer",
-    srcs = ["globalbuffer.sv",
-            "floparray.sv"],
+    srcs = [
+        "globalbuffer.sv",
+        "floparray.sv"
+    ],
 )

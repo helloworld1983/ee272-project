@@ -19,10 +19,10 @@ module mac4x4 (
   input wire sel, // Selects the weight buffer to READ
 
   // Weight inputs
-  input wire [1:0]       wbcol, // Column of the 4x4 array two write to
-  input wire [4:0]       wbidx, // weight index for writing
-  input wire [4:0]       rbidx, // weight index for reading
-  input wire [3:0][15:0] wb,    // weights to write (if enabled)
+  input wire [1:0] wbcol, // Column of the 4x4 array two write to
+  input wire [4:0] wbidx, // weight index for writing
+  input wire [4:0] rbidx, // weight index for reading
+  input wire [3:0][15:0] wb, // weights to write (if enabled)
 
   // Data inputs
   input wire [3:0][15:0] a, // data
@@ -103,8 +103,10 @@ module mac4x4_slice (
     if (~reset_n) begin
       x <= 'd0;
     end else begin
-      x <= a[0] * b[0] + a[1] * b[1]
-         + a[2] * b[2] + a[3] * b[3]
+      x <= a[0] * b[0]
+         + a[1] * b[1]
+         + a[2] * b[2]
+         + a[3] * b[3]
          + c;
     end
   end

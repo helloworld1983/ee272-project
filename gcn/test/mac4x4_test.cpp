@@ -8,6 +8,7 @@
 
 #include "gcn/test/verilator_driver.h"
 #include "gcn/test/Vmac4x4/Vmac4x4.h"
+#include "gcn/test/Vmac16x16/Vmac16x16.h"
 
 using ::testing::ElementsAre;
 using Vec4 = Eigen::Matrix<uint16_t, 4, 1>;
