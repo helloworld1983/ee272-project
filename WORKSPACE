@@ -16,6 +16,20 @@ git_repository(
     tag = "v2.2.2",
 )
 
+http_archive(
+    name = "com_github_google_benchmark",
+    urls = ["https://github.com/google/benchmark/archive/16703ff83c1ae6d53e5155df3bb3ab0bc96083be.zip"],
+    strip_prefix = "benchmark-16703ff83c1ae6d53e5155df3bb3ab0bc96083be",
+    sha256 = "59f918c8ccd4d74b6ac43484467b500f1d64b40cc1010daa055375b322a43ba3",
+)
+
+git_repository(
+    name = "com_github_abseil_abseil-cpp",
+    #build_file = "//third_party:com_github_abseil_abseil-cpp.BUILD",
+    remote = "https://github.com/abseil/abseil-cpp.git",
+    commit = "d78310fe5a82f2e0e6e16509ef8079c8d7e4674e",
+)
+
 new_git_repository(
     name = "eigen",
     build_file = "//third_party:eigen.BUILD",
@@ -25,7 +39,7 @@ new_git_repository(
 
 verilator_archive(
     name = "verilator",
-    build_file = "@//third_party:verilator.BUILD",
+    build_file = "//third_party:verilator.BUILD",
     sha256 = "d5cef6edd3bdb7754776d902daae7a7e5dd662baa7c7f895cb7028b1d6910cac",
     version = "4.008",
 )
