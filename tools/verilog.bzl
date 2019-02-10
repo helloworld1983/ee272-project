@@ -28,7 +28,7 @@ sv_library = rule(
                 ".sv",
             ],
         ),
-        "deps": attr.label_list(),
+        "deps": attr.label_list(providers = [VerilogInfo]),
     },
     implementation = _sv_library,
 )
