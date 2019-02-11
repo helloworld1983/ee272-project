@@ -133,8 +133,11 @@ def _only_cc(f):
 
 def _cc_sv_library_verilator_impl(ctx):
     """Produce a static library and C++ header files from a Verilog library"""
-    srcs = ctx.files.srcs + ctx.files.hdrs
-    deps = get_transitive_sources(srcs, ctx.attr.deps)
+    # Gather all the Verilog source files, including transitive dependencies
+    srcs = get_transitive_sources(
+        ctx.files.srcs + ctx.files.hdrs,
+        ctx.attr.deps
+    )
 
     # Default Verilator output prefix (e.g. "Vtop")
     prefix = ctx.attr.prefix + ctx.attr.top
@@ -151,12 +154,12 @@ def _cc_sv_library_verilator_impl(ctx):
     args.add("--top-module", ctx.attr.top)
     if ctx.attr.trace:
         args.add("--trace")
-    args.add_all(deps)
+    args.add_all(srcs)
     args.add_all(ctx.attr.vopts, expand_directories = False)
     ctx.actions.run(
         arguments = [args],
         executable = ctx.executable._verilator,
-        inputs = deps,
+        inputs = srcs,
         outputs = [verilator_output],
         progress_message = "(Verilator) Compiling {}".format(ctx.label),
     )
@@ -216,7 +219,7 @@ cc_sv_library_verilator = rule(
             ],
         ),
         "deps": attr.label_list(
-            doc = "List of verilog dependencies",
+            doc = "List of verilog and C++ dependencies",
         ),
         "top": attr.string(
             doc = "Top level module",
