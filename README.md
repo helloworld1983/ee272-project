@@ -12,17 +12,17 @@ If you do not already have Bazel installed, follow the [installation instruction
 To run a specific test (e.g. the regression tests for iocntl):
 
 ```bash
-$ bazel test //gcn/test:iocntl_test
+$ bazel test //gcn/test/iocntl:iocntl_test
 ```
 
 To run all tests:
 
 ```bash
-$ bazel test //gcn/test:*
+$ bazel test //gcn/test/...:*
 ```
 
 To list all defined tests:
 
 ```bash
-$ bazel query 'tests(//gcn/test:*)'
+$ bazel query 'tests(//gcn/test/...:*)'
 ```
