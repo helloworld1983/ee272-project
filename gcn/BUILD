@@ -1,6 +1,6 @@
-package(default_visibility = ["//gcn/test:__pkg__"])
+package(default_visibility = ["//gcn/test:__subpackages__"])
 
-load("@//tools:verilog.bzl", "sv_library")
+load("//tools:verilog.bzl", "sv_library")
 
 sv_library(
     name = "iocntl",
