@@ -10,7 +10,7 @@ import "DPI-C" function void ram_read(chandle handle, uint32_t address, output u
 // Transaction occurs over two cycles
 module ram #(
   parameter string FILENAME  = "", // Filename of initial contents
-  parameter int    ADDR_BITS = 16, // Address bits (1-24 supported)
+  parameter int    ADDR_BITS = 16, // Address bits (1-32 supported)
   parameter int    DATA_BITS = 32  // Data bits (only 32 supported)
 ) (
   input wire clock,
@@ -27,7 +27,7 @@ module ram #(
   output reg [DATA_BITS-1:0] b_rdata  // Read data (undefined for writes)
 );
   initial begin
-    assert(ADDR_BITS > 0 && ADDR_BITS < 25) else
+    assert(ADDR_BITS > 0 && ADDR_BITS <= 32) else
       $fatal("Invalid ADDR_BITS");
     assert(DATA_BITS == 32) else
       $fatal("Invalid DATA_BITS");

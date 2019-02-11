@@ -18,6 +18,7 @@ cc_library(
         "@com_github_abseil_abseil-cpp//absl/container:flat_hash_map",
         "@verilator//:svdpi",
     ],
+    visibility = ["//gcn:__subpackages__"],
 )
 
 cc_sv_library_verilator(
