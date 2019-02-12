@@ -1,74 +1,157 @@
+// -------------------------------------------------------------------------------------------------------------------
+// General parametrized-port SRAM to hold weights and activations for reads/writes between MAC array and DRAM
+//
+// Intention is to support, at every given point in time:
+//  -- WGT: 1 read-only bank (active with mac), 1 write-only bank (active with dram)
+//  -- ACT: 1 read-only bank (active with mac), 1 write-only bank (active with mac), and 1 r/w bank (active with dram)
+//
+// FIXME: super general and thus may be costly for area. Should explore rewriting to be more specific.
+// -------------------------------------------------------------------------------------------------------------------
 module globalbuffer #(
-  WGT_DEPTH = 256,
-  WGT_WIDTH = 256,
-  ACT_DEPTH = 256,
-  ACT_WIDTH = 256
+  parameter NUM_WGT_RBANK = 1,
+  parameter NUM_WGT_WBANK = 1,
+  parameter NUM_ACT_RBANK = 2,
+  parameter NUM_ACT_WBANK = 1,
+
+  parameter WGT_DEPTH = 256,
+  parameter WGT_WIDTH = 256,
+  parameter ACT_DEPTH = 256,
+  parameter ACT_WIDTH = 256
 ) (
   input clock,
   input reset_n,
 
   // Weight array interface
-  input  [WGT_DEPTH-1:0] wgt_addr,
-  input                  wgt_ren,
-  input                  wgt_wen,
-  output [WGT_WIDTH-1:0] wgt_rdata,
-  input  [WGT_WIDTH-1:0] wgt_wdata,
+  input  [NUM_WGT_RBANK-1:0][WGT_DEPTH-1:0]                          wgt_raddr,
+  input  [NUM_WGT_RBANK-1:0][$clog(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_rsel,
+  input  [NUM_WGT_RBANK-1:0][$clog(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_ren,
+  output [NUM_WGT_RBANK-1:0][WGT_WIDTH-1:0]                          wgt_rdata,
+
+  input  [NUM_WGT_WBANK-1:0][WGT_DEPTH-1:0]                          wgt_waddr,
+  input  [NUM_WGT_WBANK-1:0][$clog(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_wsel,
+  input  [NUM_WGT_WBANK-1:0][$clog(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_wen,
+  input  [NUM_WGT_WBANK-1:0][WGT_WIDTH-1:0]                          wgt_wdata,
 
   // Activation array interface
-  input act_sel, // Buffer select
+  input  [NUM_ACT_RBANK-1:0][ACT_DEPTH-1:0]                          act_raddr,
+  input  [NUM_ACT_RBANK-1:0][$clog(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_rsel, // FIXME: write assertion to ensure rsel and wsel one-hot
+  input  [NUM_ACT_RBANK-1:0][$clog(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_ren,
+  output [NUM_ACT_RBANK-1:0][ACT_WIDTH-1:0]                          act_rdata,
 
-  input  [ACT_DEPTH-1:0] act_raddr,
-  input                  act_ren, // Read enable
-  output [ACT_WIDTH-1:0] act_rdata,
-
-  input  [ACT_DEPTH-1:0] act_waddr,
-  input                  act_wen, // Write enable
-  input  [ACT_WIDTH-1:0] act_wdata
+  input  [NUM_ACT_WBANK-1:0][ACT_DEPTH-1:0]                          act_waddr,
+  input  [NUM_ACT_WBANK-1:0][$clog(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_wsel,
+  input  [NUM_ACT_WBANK-1:0][$clog(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_wen,
+  input  [NUM_ACT_WBANK-1:0][ACT_WIDTH-1:0]                          act_wdata
 );
 
-floparray wgt_mem #(.DEPTH(WGT_DEPTH),
-                    .WIDTH(WGT_WIDTH))
-(.clock,
- .reset_n,
- .raddr     (wgt_addr),
- .ren       (wgt_ren),
- .rdata     (wgt_rdata),
- .waddr     (wgt_addr),
- .wen       (wgt_wen),
- .wdata     (wgt_wdata)
-)
 
-logic act_ren0, act_ren1, act_wen0, act_wen1;
-assign act_ren0 = act_ren & ~act_sel;
-assign act_ren1 = act_ren &  act_sel;
-assign act_wen0 = act_wen &  act_sel; // Write bank is flipped from read bank
-assign act_wen1 = act_wen & ~act_sel;
+// Trnsform input signals into mask to simplify for loop (FIXME: should flop incoming/outgoing signals)
+// -- WGT --
+logic [NUM_WGT_RBANK+NUM_WGT_WBANK-1:0][WGT_DEPTH-1:0] wgt_raddr_int;
+logic [NUM_WGT_RBANK+NUM_WGT_WBANK-1:0][WGT_WIDTH-1:0] wgt_rdata_int;
+logic [NUM_WGT_RBANK+NUM_WGT_WBANK-1:0]                wgt_rsel_int;
+logic [NUM_WGT_RBANK+NUM_WGT_WBANK-1:0]                wgt_ren_int;
 
-logic [ACT_WIDTH-1:0] act_rdata0, act_rdata1;
-act_rdata = act_sel ? act_rdata1 : act_rdata0;
+genvar m;
+generate
+for (int m = 0 ; m < NUM_WGT_RBANK ; m++) begin
+  wgt_raddr_int = '0;
+  wgt_rsel_int = '0
+  wgt_ren_int = '0
+  wgt_rdata_int = '0;
 
-floparray act_mem0 #(.DEPTH(ACT_DEPTH),
-                     .WIDTH(ACT_WIDTH))
-(.clock,
- .reset_n,
- .raddr     (act_raddr),
- .ren       (act_ren0),
- .rdata     (act_rdata0),
- .waddr     (act_waddr),
- .wen       (act_wen0),
- .wdata     (act_wdata)
-)
+  wgt_raddr_int[wgt_rsel[m]] = wgt_raddr[m];
+  wgt_rsel_int[wgt_rsel[m]] = 1'b1;
+  wgt_ren_int[wgt_ren[m]] = 1'b1;
 
-floparray act_mem1 #(.DEPTH(ACT_DEPTH),
-                     .WIDTH(ACT_WIDTH))
-(.clock,
- .reset_n,
- .raddr     (act_raddr),
- .ren       (act_ren1),
- .rdata     (act_rdata1),
- .waddr     (act_waddr),
- .wen       (act_wen1),
- .wdata     (act_wdata)
-)
+  wgt_rdata[m] = wgt_rdata_int[wgt_rsel[m]];
+end
+
+genvar n;
+generate
+for (int n = 0 ; n < NUM_WGT_WBANK ; n++) begin
+  wgt_waddr_int = '0;
+  wgt_wsel_int = '0
+  wgt_wen_int = '0
+  wgt_wdata_int = '0;
+
+  wgt_waddr_int[wgt_wsel[n]] = wgt_waddr[n];
+  wgt_wsel_int[wgt_wsel[n]] = 1'b1;
+  wgt_wen_int[wgt_wen[n]] = 1'b1;
+
+  wgt_wdata[n] = wgt_wdata_int[wgt_wsel[n]];
+end
+
+genvar o;
+generate
+for (int o = 0 ; o < (NUM_WGT_RBANK+NUM_WGT_WBANK) ; o++) begin
+  floparray wgt_mem #(.DEPTH(WGT_DEPTH),
+                      .WIDTH(WGT_WIDTH))
+  (.clock,
+   .reset_n,
+   .raddr     (wgt_raddr_int[o]),
+   .ren       (wgt_ren_int[o] & wgt_rsel_int[o]),
+   .rdata     (wgt_rdata_int[o]),
+   .waddr     (wgt_waddr_int[o]),
+   .wen       (wgt_wen_int[o] & wgt_wsel_int[o]),
+   .wdata     (wgt_wdata_int[o])
+  )
+end
+endgenerate
+
+
+// -- ACT --
+logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0][ACT_DEPTH-1:0] act_raddr_int;
+logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0][ACT_WIDTH-1:0] act_rdata_int;
+logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0]                act_rsel_int;
+logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0]                act_ren_int;
+
+genvar j;
+generate
+for (int j = 0 ; j < NUM_ACT_RBANK ; j++) begin
+  act_raddr_int = '0;
+  act_rsel_int = '0
+  act_ren_int = '0
+  act_rdata_int = '0;
+
+  act_raddr_int[act_rsel[j]] = act_raddr[j];
+  act_rsel_int[act_rsel[j]] = 1'b1;
+  act_ren_int[act_ren[j]] = 1'b1;
+
+  act_rdata[j] = act_rdata_int[act_rsel[j]];
+end
+
+genvar k;
+generate
+for (int k = 0 ; k < NUM_ACT_WBANK ; k++) begin
+  act_waddr_int = '0;
+  act_wsel_int = '0
+  act_wen_int = '0
+  act_wdata_int = '0;
+
+  act_waddr_int[act_wsel[k]] = act_waddr[k];
+  act_wsel_int[act_wsel[k]] = 1'b1;
+  act_wen_int[act_wen[k]] = 1'b1;
+
+  act_wdata[k] = act_wdata_int[act_wsel[k]];
+end
+
+genvar l;
+generate
+for (int l = 0 ; l < (NUM_ACT_RBANK+NUM_ACT_WBANK) ; l++) begin
+  floparray act_mem #(.DEPTH(ACT_DEPTH),
+                      .WIDTH(ACT_WIDTH))
+  (.clock,
+   .reset_n,
+   .raddr     (act_raddr_int[l]),
+   .ren       (act_ren_int[l] & act_rsel_int[l]),
+   .rdata     (act_rdata_int[l]),
+   .waddr     (act_waddr_int[l]),
+   .wen       (act_wen_int[l] & act_wsel_int[l]),
+   .wdata     (act_wdata_int[l])
+  )
+end
+endgenerate
+
 
 endmodule
