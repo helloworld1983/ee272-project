@@ -30,3 +30,10 @@ sv_library(
         "floparray.sv"
     ],
 )
+
+sv_library(
+    name = "dram2gb_cntl",
+    srcs = [
+        "dram2gb_cntl.sv",
+    ],
+)

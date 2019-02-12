@@ -3,13 +3,18 @@ module dram2gb_cntl #(
   parameter WGT_DEPTH = 256,
   parameter WGT_WIDTH = 256,
   parameter ACT_DEPTH = 256,
-  parameter ACT_WIDTH = 256
+  parameter ACT_WIDTH = 256,
+
+  parameter BATCH_SIZE = 128
 
 ) (
   input clock,
   input reset_n,
 
   // Control interface
+  input mac_done,
+  input [127:0][31:0] rd_addr
+  
 
   // --- DRAM interface ---
   // Read interface
@@ -25,34 +30,27 @@ module dram2gb_cntl #(
   input         wr_gnt,
   output [15:0] wr_data [0:7],
 
-  // DRAM interface (Note: DRAM fetches 128 bits over 20 cycles)
-  input         io2dram_cs,
-  input  [ 2:0] io2dram_cmd,
-  input  [13:0] io2dram_addr,
-  input  [ 2:0] io2dram_bank,
-  output [15:0] io2dram_data [0:1],
-
   // --- Global Buffer interface ---
   // Weight array interface
   output [NUM_WGT_RBANK-1:0][WGT_DEPTH-1:0]                          wgt_raddr,
-  output [NUM_WGT_RBANK-1:0][$clog(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_rsel,
-  output [NUM_WGT_RBANK-1:0][$clog(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_ren,
+  output [NUM_WGT_RBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_rsel,
+  output [NUM_WGT_RBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_ren,
   input  [NUM_WGT_RBANK-1:0][WGT_WIDTH-1:0]                          wgt_rdata,
 
   output [NUM_WGT_WBANK-1:0][WGT_DEPTH-1:0]                          wgt_waddr,
-  output [NUM_WGT_WBANK-1:0][$clog(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_wsel,
-  output [NUM_WGT_WBANK-1:0][$clog(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_wen,
+  output [NUM_WGT_WBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_wsel,
+  output [NUM_WGT_WBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_wen,
   output [NUM_WGT_WBANK-1:0][WGT_WIDTH-1:0]                          wgt_wdata,
 
   // Activation array interface
   output [NUM_ACT_RBANK-1:0][ACT_DEPTH-1:0]                          act_raddr,
-  output [NUM_ACT_RBANK-1:0][$clog(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_rsel,
-  output [NUM_ACT_RBANK-1:0][$clog(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_ren,
+  output [NUM_ACT_RBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_rsel,
+  output [NUM_ACT_RBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_ren,
   input  [NUM_ACT_RBANK-1:0][ACT_WIDTH-1:0]                          act_rdata,
 
   output [NUM_ACT_WBANK-1:0][ACT_DEPTH-1:0]                          act_waddr,
-  output [NUM_ACT_WBANK-1:0][$clog(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_wsel,
-  output [NUM_ACT_WBANK-1:0][$clog(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_wen,
+  output [NUM_ACT_WBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_wsel,
+  output [NUM_ACT_WBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_wen,
   output [NUM_ACT_WBANK-1:0][ACT_WIDTH-1:0]                          act_wdata
 );
 
@@ -103,7 +101,7 @@ module dram2gb_cntl #(
       end
       STATE_GB_ACTIVE: begin
         // process data
-        if (node_complete)
+        if (mac_done)
           state_gb_next = STATE_GB_DONE;
       end
       STATE_GB_DONE: begin
