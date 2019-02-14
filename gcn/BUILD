@@ -37,3 +37,10 @@ sv_library(
         "dram2gb_cntl.sv",
     ],
 )
+
+sv_library(
+    name = "swaparbitrator",
+    srcs = [
+        "swaparbitrator.sv",
+    ],
+)
