@@ -36,6 +36,8 @@ cc_test(
     deps = [
         ":ram_dpi",
         ":ram_cc_sv",
+        "//gcn/test:verilator_driver",
+        "@com_github_abseil_abseil-cpp//absl/container:flat_hash_map",
         "@com_github_google_googletest//:gtest",
         "@com_github_google_googletest//:gtest_main",
     ],

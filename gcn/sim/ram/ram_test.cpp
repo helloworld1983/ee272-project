@@ -1,9 +1,13 @@
+#include <random>
+
+#include "absl/container/flat_hash_map.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include "gcn/sim/ram/ram.h"
 #include "gcn/sim/ram/Vram/Vram.h"
-//#include "gcn/test/verilator_wrapper.h"
+
+#include "gcn/test/verilator_driver.h"
 
 TEST(Readmemh, Empty) {
   Ram ram(32, 32);
@@ -88,11 +92,75 @@ TEST(Readmemh, BadAddress) {
   EXPECT_NE(ram.readmemh(ss), 0);
 }
 
-TEST(Ram, ReadWrite) {
-  Vram ram;
-  ram.clock   = 0;
-  ram.reset_n = 0;
-  ram.eval();
-  ram.clock   = 1;
-  ram.eval();
+class RamTest : public ::testing::Test {
+  protected:
+    VerilatorDUT<Vram> dut;
+
+    void set_address(uint32_t address, bool write) {
+      dut.poke(&Vram::a_addr, address);
+      dut.poke(&Vram::a_write, write);
+      dut.poke(&Vram::a_valid, 1);
+      dut.stepUntil(&Vram::a_ready, 1);
+      dut.step();
+      dut.poke(&Vram::a_valid, 0);
+    }
+
+    uint32_t read(uint32_t address) {
+      set_address(address, false);
+      dut.poke(&Vram::r_ready, 1);
+      dut.stepUntil(&Vram::r_valid, 1);
+      auto value = dut.peek(&Vram::r_data);
+      dut.step();
+      dut.poke(&Vram::r_ready, 0);
+      return value;
+    }
+
+    void write(uint32_t address, uint32_t value) {
+      set_address(address, true);
+      dut.poke(&Vram::w_valid, 1);
+      dut.poke(&Vram::w_data, value);
+      dut.stepUntil(&Vram::w_ready, 1);
+      dut.step();
+      dut.poke(&Vram::w_valid, 0);
+    }
+
+    void SetUp() override {
+      dut.reset();
+      dut.poke(&Vram::a_valid, 0);
+      dut.poke(&Vram::r_ready, 0);
+      dut.poke(&Vram::w_valid, 0);
+    }
+
+    void TearDown() override {
+      dut.finish();
+    }
+};
+
+TEST_F(RamTest, ReadWriteSimple) {
+  uint32_t addr = 10;
+  uint32_t value = 1;
+  write(addr, value);
+  EXPECT_EQ(read(addr), value);
+}
+
+TEST_F(RamTest, ReadWriteRandom) {
+  // Random number generator
+  std::mt19937 gen(/*seed*/0);
+  std::uniform_int_distribution<uint32_t> dist;
+
+  // Model
+  absl::flat_hash_map<uint32_t, uint32_t> map;
+
+  // Perform some writes
+  for (int i = 0; i < 1000; i = i + 1) {
+    auto value = dist(gen);
+    auto addr  = dist(gen);
+    map[addr] = value;
+    write(addr, value);
+  }
+
+  // Check the results
+  for (auto&& [addr, value] : map) {
+    EXPECT_EQ(read(addr), value);
+  }
 }
