@@ -27,7 +27,7 @@ sv_library(
     name = "globalbuffer",
     srcs = [
         "globalbuffer.sv",
-        "floparray.sv"
+        "floparray.sv",
     ],
 )
 
@@ -41,6 +41,16 @@ sv_library(
 sv_library(
     name = "swaparbitrator",
     srcs = [
+        "swaparbitrator.sv",
+    ],
+)
+
+sv_library(
+    name = "gcn",
+    srcs = [
+        "gcn.sv",
+        "globalbuffer.sv",
+        "floparray.sv",
         "swaparbitrator.sv",
     ],
 )

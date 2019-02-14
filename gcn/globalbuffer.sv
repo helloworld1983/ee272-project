@@ -14,45 +14,43 @@ module globalbuffer #(
   parameter NUM_ACT_WBANK = 1,
 
   parameter WGT_DEPTH = 256,
-  parameter WGT_LOGDEPTH = $clog2(WGT_DEPTH),
   parameter WGT_WIDTH = 256,
   parameter ACT_DEPTH = 256,
-  parameter ACT_LOGDEPTH = $clog2(ACT_DEPTH),
   parameter ACT_WIDTH = 256
 ) (
   input clock,
   input reset_n,
 
   // Weight array interface
-  input  [NUM_WGT_RBANK-1:0][WGT_LOGDEPTH-1:0]                          wgt_raddr,
+  input  [NUM_WGT_RBANK-1:0][$clog2(WGT_DEPTH)-1:0]                   wgt_raddr,
   input  [NUM_WGT_RBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_rsel,
   input  [NUM_WGT_RBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_ren,
-  output [NUM_WGT_RBANK-1:0][WGT_WIDTH-1:0]                          wgt_rdata,
+  output [NUM_WGT_RBANK-1:0][WGT_WIDTH-1:0]                           wgt_rdata,
 
-  input  [NUM_WGT_WBANK-1:0][WGT_LOGDEPTH-1:0]                          wgt_waddr,
+  input  [NUM_WGT_WBANK-1:0][$clog2(WGT_DEPTH)-1:0]                   wgt_waddr,
   input  [NUM_WGT_WBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_wsel,
   input  [NUM_WGT_WBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_wen,
-  input  [NUM_WGT_WBANK-1:0][WGT_WIDTH-1:0]                          wgt_wdata,
+  input  [NUM_WGT_WBANK-1:0][WGT_WIDTH-1:0]                           wgt_wdata,
 
   // Activation array interface
-  input  [NUM_ACT_RBANK-1:0][ACT_LOGDEPTH-1:0]                          act_raddr,
+  input  [NUM_ACT_RBANK-1:0][$clog2(ACT_DEPTH)-1:0]                   act_raddr,
   input  [NUM_ACT_RBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_rsel, // FIXME: write assertion to ensure rsel and wsel one-hot
   input  [NUM_ACT_RBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_ren,
-  output [NUM_ACT_RBANK-1:0][ACT_WIDTH-1:0]                          act_rdata,
+  output [NUM_ACT_RBANK-1:0][ACT_WIDTH-1:0]                           act_rdata,
 
-  input  [NUM_ACT_WBANK-1:0][ACT_LOGDEPTH-1:0]                          act_waddr,
+  input  [NUM_ACT_WBANK-1:0][$clog2(ACT_DEPTH)-1:0]                   act_waddr,
   input  [NUM_ACT_WBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_wsel,
   input  [NUM_ACT_WBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_wen,
-  input  [NUM_ACT_WBANK-1:0][ACT_WIDTH-1:0]                          act_wdata
+  input  [NUM_ACT_WBANK-1:0][ACT_WIDTH-1:0]                           act_wdata
 );
 
 
 // Trnsform input signals into mask to simplify for loop (FIXME: should flop incoming/outgoing signals)
 // -- WGT --
-logic [NUM_WGT_RBANK+NUM_WGT_WBANK-1:0][WGT_LOGDEPTH-1:0] wgt_raddr_int, wgt_waddr_int;
-logic [NUM_WGT_RBANK+NUM_WGT_WBANK-1:0][WGT_WIDTH-1:0] wgt_rdata_int, wgt_wdata_int;
-logic [NUM_WGT_RBANK+NUM_WGT_WBANK-1:0]                wgt_rsel_int, wgt_wsel_int;
-logic [NUM_WGT_RBANK+NUM_WGT_WBANK-1:0]                wgt_ren_int, wgt_wen_int;
+logic [NUM_WGT_RBANK+NUM_WGT_WBANK-1:0][$clog2(WGT_DEPTH)-1:0] wgt_raddr_int, wgt_waddr_int;
+logic [NUM_WGT_RBANK+NUM_WGT_WBANK-1:0][WGT_WIDTH-1:0]         wgt_rdata_int, wgt_wdata_int;
+logic [NUM_WGT_RBANK+NUM_WGT_WBANK-1:0]                        wgt_rsel_int, wgt_wsel_int;
+logic [NUM_WGT_RBANK+NUM_WGT_WBANK-1:0]                        wgt_ren_int, wgt_wen_int;
 
 genvar m;
 generate
@@ -110,10 +108,10 @@ endgenerate
 
 
 // -- ACT --
-logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0][ACT_LOGDEPTH-1:0] act_raddr_int, act_waddr_int;
-logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0][ACT_WIDTH-1:0] act_rdata_int, act_wdata_int;
-logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0]                act_rsel_int, act_wsel_int;
-logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0]                act_ren_int, act_wen_int;
+logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0][$clog2(ACT_DEPTH)-1:0] act_raddr_int, act_waddr_int;
+logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0][ACT_WIDTH-1:0]         act_rdata_int, act_wdata_int;
+logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0]                        act_rsel_int, act_wsel_int;
+logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0]                        act_ren_int, act_wen_int;
 
 genvar j;
 generate

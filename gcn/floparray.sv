@@ -21,7 +21,7 @@ module floparray #(
     end else begin
       rdata <= ren ? mem[raddr] : 'b0;
       if (wen & ~ren)
-        mem[waddr_q] <= wdata;
+        mem[waddr] <= wdata;
     end
   end
 endmodule
