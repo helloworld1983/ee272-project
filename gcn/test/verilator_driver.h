@@ -77,9 +77,15 @@ class VerilatorDUT {
     }
 
     /// Run the testbench until the value is equal
-    template <typename V>
-    void stepUntil(V T::*m, V v) {
-      while (!(peek(m) == v)) { step(); }
+    template <typename U, typename V>
+    uint64_t stepUntil(U T::*m, V v, uint64_t timeout = -1) {
+      for (uint64_t time = 0; time < timeout; time++) {
+        if (peek(m) == v) {
+          return time;
+        }
+        step();
+      }
+      return timeout;
     }
 
     /// Run the testbench until the value is true
