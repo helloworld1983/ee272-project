@@ -35,6 +35,7 @@ sv_library(
     name = "dram2gb_cntl",
     srcs = [
         "dram2gb_cntl.sv",
+        "dram2gb_stcntl.sv",
     ],
 )
 
@@ -49,9 +50,11 @@ sv_library(
     name = "gcn",
     srcs = [
         "gcn.sv",
-        "globalbuffer.sv",
-        "floparray.sv",
-        "swaparbitrator.sv",
-        "dram2gb_cntl.sv",
+    ],
+    deps = [
+        ":swaparbitrator",
+        ":globalbuffer",
+        ":dram2gb_cntl",
+        ":iocntl",
     ],
 )

@@ -1,29 +1,33 @@
 // A 'toy' version of a x16 DRAM interface with 8n prefetch
 // This is NOT a real DRAM interface, only used for simple experimentation
-module iocntl (
+module iocntl #(
+  parameter ADDR_WIDTH = 32,
+  parameter DATA_WIDTH = 16,
+  parameter BATCH_SIZE = 8
+) (
   input clock,
   input reset_n,
 
   // Read interface
-  input  [27:0] rd_addr,
-  input         rd_req,
-  output        rd_gnt,
-  output        rd_valid,
-  output [15:0] rd_data [0:7],
+  input  [(ADDR_WIDTH-1):0] rd_addr,
+  input                     rd_req,
+  output                    rd_gnt,
+  output                    rd_valid,
+  output [(DATA_WIDTH-1):0] rd_data [0:(BATCH_SIZE-1)],
 
   // Write interface
-  input  [25:0] wr_addr,
-  input         wr_req,
-  output        wr_gnt,
-  input  [15:0] wr_data [0:7],
+  input  [(ADDR_WIDTH-1):0] wr_addr,
+  input                     wr_req,
+  output                    wr_gnt,
+  input  [(DATA_WIDTH-1):0] wr_data [0:(BATCH_SIZE-1)],
 
   // DRAM interface
   // Note: DRAM fetches 128 bits over 20 cycles
-  output        io2dram_cs,
-  output [ 2:0] io2dram_cmd,
-  output [13:0] io2dram_addr,
-  output [ 2:0] io2dram_bank,
-  input  [15:0] io2dram_data [0:1]
+  output                    io2dram_cs,
+  output [ 2:0]             io2dram_cmd,
+  output [13:0]             io2dram_addr,
+  output [ 2:0]             io2dram_bank,
+  input  [(DATA_WIDTH-1):0] io2dram_data [0:1]
 );
   parameter BAD_ADDR = 14'h3BAD;
 
