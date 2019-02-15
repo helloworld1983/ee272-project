@@ -20,21 +20,19 @@ module reductionbuffer (
   reg [15:0][15:0][15:0] memory [0:1];
   reg       [15:0][15:0] wbuff;
 
-  reg       sel_ff;
-  reg [7:0] ridx_ff;
   reg [7:0] widx_ff;
   always_ff @(posedge clock or negedge reset_n) begin
     if (~reset_n) begin
-      sel_ff  <= 1'b0;
-      ridx_ff <= 8'b0;
       widx_ff <= 8'b0;
+      memory  <= '{0, 0};
     end else begin
       if (wen) begin
-        memory[~sel_ff][widx_ff] <= wdata;
+        // TODO: This is very hacky... we'll need to revisit for synthesis
+        memory[~sel][widx_ff] <= wdata + memory[~sel][widx_ff];
         widx_ff <= widx_ff + 'b1;
       end
       if (ren) begin
-        rdata <= memory[sel_ff][ridx_ff];
+        rdata <= memory[sel][ridx];
       end
     end
   end
