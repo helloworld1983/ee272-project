@@ -24,6 +24,11 @@ sv_library(
 )
 
 sv_library(
+    name = "reductionbuffer",
+    srcs = ["reductionbuffer.sv"],
+)
+
+sv_library(
     name = "globalbuffer",
     srcs = [
         "globalbuffer.sv",
@@ -41,9 +46,7 @@ sv_library(
 
 sv_library(
     name = "swaparbitrator",
-    srcs = [
-        "swaparbitrator.sv",
-    ],
+    srcs = ["swaparbitrator.sv"],
 )
 
 sv_library(
