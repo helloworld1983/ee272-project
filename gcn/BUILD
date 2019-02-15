@@ -52,5 +52,6 @@ sv_library(
         "globalbuffer.sv",
         "floparray.sv",
         "swaparbitrator.sv",
+        "dram2gb_cntl.sv",
     ],
 )

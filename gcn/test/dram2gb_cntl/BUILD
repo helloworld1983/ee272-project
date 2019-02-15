@@ -2,8 +2,8 @@ load("//tools/verilator:rules.bzl", "cc_sv_library_verilator")
 
 cc_sv_library_verilator(
     name = "dram2gb_cntl",
-    srcs = ["dram2gb_cntl.sv"],
-    top = "tb",
+    #srcs = ["dram2gb_cntl.sv"],
+    top = "dram2gb_cntl",
     trace = True,
     vopts = ["--assert"],
     deps = [

@@ -12,18 +12,33 @@
 //  - macarray (TODO)
 // -------------------------------------------------------------------------------------------------------------------
 module gcn #(
+  parameter BATCH_SIZE = 128, // Number of distinct addresses accessed per process batch
+  parameter ADDR_WIDTH = 32,
+
   parameter NUM_WGT_RBANK = 1,
   parameter NUM_WGT_WBANK = 1,
   parameter NUM_ACT_RBANK = 2,
   parameter NUM_ACT_WBANK = 1,
-  parameter WGT_DEPTH = 256,
+
+  parameter WGT_DEPTH = BATCH_SIZE, // Number of weight entries in global buffer
   parameter WGT_WIDTH = 256,
-  parameter ACT_DEPTH = 256,
+  parameter ACT_DEPTH = BATCH_SIZE, // Number of activation entries in global buffer
   parameter ACT_WIDTH = 256
 ) (
   input clock,
-  input reset_n
+  input reset_n,
+
+  // Control Signals
+  input req,
+  output ack,
+  output done,
+
+  // Data Signals
+  input [BATCH_SIZE-1:0][ADDR_WIDTH-1:0] rd_addr,
+  output [BATCH_SIZE-1:0][ADDR_WIDTH-1:0] wr_addr
 );
+
+/* FRONTEND */
 
 /* BACKEND */
 
@@ -37,6 +52,19 @@ logic [NUM_WGT_WBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_wsel;
 logic [NUM_ACT_RBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_rsel;
 logic [NUM_ACT_WBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_wsel;
 
+dram2gb_cntl dram2gb_cntl
+(
+  .*,
+  // FIXME: temp tie-offs to compile, need to make correct connections
+  .mac_done('0),
+  .process_valid('0),
+  .process_active(),
+  .writeback_req('0),
+  .writeback_done('0),
+  .writeback_active(),
+  .load_done('0),
+  .load_active()
+);
 
 swaparbitrator
 #(
@@ -46,7 +74,6 @@ swaparbitrator
   .NUM_ACT_WBANK(NUM_ACT_WBANK)
 ) swaparbitrator (
   .*,
-  .swap(1'b0) // FIXME: connect to dram2gb_cntl
 );
 
 globalbuffer

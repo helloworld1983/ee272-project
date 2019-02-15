@@ -1,179 +1,155 @@
 // Control logic to synchronize DRAM + global memory
-module dram2gb_cntl #(
-  parameter WGT_DEPTH = 256,
-  parameter WGT_WIDTH = 256,
-  parameter ACT_DEPTH = 256,
-  parameter ACT_WIDTH = 256,
+module dram2gb_cntl
+(
+  input  clock,
+  input  reset_n,
 
-  parameter BATCH_SIZE = 128
+  // GB FSM
+  input  mac_done,
+  input  process_valid,  // Asserted when valid batch is waiting to be processed. De-asserts upon process_active rising edge.
+  output process_active, // Asserted when MAC is processing
 
-) (
-  input clock,
-  input reset_n,
-
-  // Control interface
-  input mac_done,
-  input [127:0][31:0] rd_addr
-  
-
-  // --- DRAM interface ---
-  // Read interface
-  output [27:0] rd_addr,
-  output        rd_req,
-  input         rd_gnt,
-  input         rd_valid,
-  input  [15:0] rd_data [0:7],
-
-  // Write interface
-  output [25:0] wr_addr,
-  output        wr_req,
-  input         wr_gnt,
-  output [15:0] wr_data [0:7],
-
-  // --- Global Buffer interface ---
-  // Weight array interface
-  output [NUM_WGT_RBANK-1:0][WGT_DEPTH-1:0]                          wgt_raddr,
-  output [NUM_WGT_RBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_rsel,
-  output [NUM_WGT_RBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_ren,
-  input  [NUM_WGT_RBANK-1:0][WGT_WIDTH-1:0]                          wgt_rdata,
-
-  output [NUM_WGT_WBANK-1:0][WGT_DEPTH-1:0]                          wgt_waddr,
-  output [NUM_WGT_WBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_wsel,
-  output [NUM_WGT_WBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_wen,
-  output [NUM_WGT_WBANK-1:0][WGT_WIDTH-1:0]                          wgt_wdata,
-
-  // Activation array interface
-  output [NUM_ACT_RBANK-1:0][ACT_DEPTH-1:0]                          act_raddr,
-  output [NUM_ACT_RBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_rsel,
-  output [NUM_ACT_RBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_ren,
-  input  [NUM_ACT_RBANK-1:0][ACT_WIDTH-1:0]                          act_rdata,
-
-  output [NUM_ACT_WBANK-1:0][ACT_DEPTH-1:0]                          act_waddr,
-  output [NUM_ACT_WBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_wsel,
-  output [NUM_ACT_WBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_wen,
-  output [NUM_ACT_WBANK-1:0][ACT_WIDTH-1:0]                          act_wdata
+  // DRAM FSM
+  input  writeback_req,
+  input  writeback_done,
+  output writeback_active,
+  input  load_done,
+  output load_active,
+  output swap            // Swap banks for weights/activations
 );
 
+// -------------------------------------------------------------------------------------------------------------------
 // Goal: Parallelize the DRAM fetch/write and GB fetch/write.
-//
-// Solution: Have two FSMs with dependencies.
+// Solution: Two separate but interlocked FSMs. The interlocking step is at the IDLE of both FSMs.
 // 
-// GB should have 2 read banks and 1 write bank.
+// Details: ACTIVATION has 2 read banks and 1 write bank in the Global Buffer.
 // - At once, 1 rd/wr bank pair are actively processing data with the MAC array.
-//   The other write bank is writing back to DRAM memory, then loading in the next set of wgt/act
-//   values.
+//   The other write bank is writing back to DRAM memory, then loading in the next set of wgt/act values.
 // - At every node completion, the write bank becomes the dram bank, the DRAM bank becomes the read
 //   bank, and the original read bank becomes the write bank.
-//   (^ This applies to the activations. Since weight banks are only reads, only two are needed, and
-//      they are swapped upon node completion)
-// Node completion is defined as: when both DRAM and GB are completed.
+// -------------------------------------------------------------------------------------------------------------------
 
   typedef enum logic [1:0] {
     STATE_GB_IDLE, STATE_GB_ACTIVE, STATE_GB_DONE
   } state_gb_t;
 
-  typedef enum logic [2:0] {
-    STATE_DRAM_IDLE, STATE_DRAM_WRITEBACK, STATE_DRAM_LOAD, STATE_DRAM_SWAP, STATE_DRAM_WAIT
+  typedef enum logic [1:0] {
+    STATE_DRAM_IDLE, STATE_DRAM_WRITEBACK, STATE_DRAM_LOAD, STATE_DRAM_SWAP
   } state_dram_t;
 
-  logic gb_rdy, dram_rdy;
+  logic gb_idle, gb_idle_q, dram_idle, dram_idle_q;
+  always_ff @ (posedge clock) begin
+    if (~reset_n) begin
+      gb_idle_q <= 1'b0;
+      dram_idle_q <= 1'b0;
+    end
+    else begin
+      gb_idle_q <= gb_idle;
+      dram_idle_q <= dram_idle;
+    end
+  end
 
-  // GB State machine
+
+  logic dram_loaded, dram_loaded_deassert, dram_loaded_assert;
+  always_ff @ (posedge clock) begin
+    if (~reset_n || dram_loaded_deassert) dram_loaded <= 1'b0;
+    else if (dram_loaded_assert)          dram_loaded <= 1'b1;
+  end
+
+  // GB State machine: This only controls the processing.
+  // Process when weight/activation banks are ready
   state_gb_t state_gb, state_gb_next;
   always_ff @ (posedge clock) begin
-    if (~reset_n) begin
-      state_gb <= STATE_GB_IDLE;
-    end
-    else begin
-      state_gb <= state_gb_next;
-    end
+    if (~reset_n) state_gb <= STATE_GB_IDLE;
+    else          state_gb <= state_gb_next;
   end
 
   always_comb begin
-    gb_rdy = 1'b0;
+    // Internal signals
+    gb_idle = 1'b0;
+    // Output signals
+    process_active = 1'b0;
 
-    case(state)
+    case(state_gb)
       STATE_GB_IDLE: begin
-        // wait for valid data to come in from dram
-        gb_rdy = 1'b1;
-        if (node_valid)
-          state_gb_next = STATE_GB_ACTIVE;
+        // Wait for valid data to be loaded from DRAM
+        gb_idle = 1'b1;
+        if (process_valid & dram_loaded) state_gb_next = STATE_GB_ACTIVE;
+        else                             state_gb_next = STATE_GB_IDLE;
       end
       STATE_GB_ACTIVE: begin
-        // process data
-        if (mac_done)
-          state_gb_next = STATE_GB_DONE;
+        // Process data
+        process_active = 1'b1;
+        if (mac_done) state_gb_next = STATE_GB_DONE;
+        else          state_gb_next = STATE_GB_ACTIVE;
       end
       STATE_GB_DONE: begin
-        // wait for dram to also be done/idle: output ready to swap banks and initiate writing back to dram/starting new node
-        gb_rdy = 1'b1;
-        if (dram_rdy | node_valid) begin
-          swap = 1'b1;
-          state_gb_next = STATE_GB_ACTIVE;
-        end
-        else if (dram_rdy | ~node_valid) begin
-          swap = 1'b1;
-          state_gb_next = STATE_GB_IDLE;
+        // Wait for DRAM to also be done/idle.
+        gb_idle = 1'b1;
+        if (dram_idle_q | process_valid)       state_gb_next = STATE_GB_ACTIVE;
+        else if (dram_idle_q | ~process_valid) state_gb_next = STATE_GB_IDLE;
+        else                                 state_gb_next = STATE_GB_DONE;
       end
-      default: /* do nothing */
+      default: begin /* do nothing */ end
     endcase
+
   end
 
-
   // DRAM State machine
-  stage_dram_t state_dram, state_dram_next;
+  state_dram_t state_dram, state_dram_next;
   always_ff @ (posedge clock) begin
-    if (~reset_n) begin
-      state_dram <= STATE_DRAM_IDLE;
-    end
-    else begin
-      state_dram <= state_dram_next;
-    end
+    if (~reset_n) state_dram <= STATE_DRAM_IDLE;
+    else          state_dram <= state_dram_next;
   end
 
   always_comb begin
-    dram_rdy = 1'b0;
+    // Internal signals
+    dram_idle = 1'b0;
+    dram_loaded_deassert = 1'b0;
+    dram_loaded_assert = 1'b0;
+    // Output signals
+    writeback_active = 1'b0;
+    load_active = 1'b0;
 
-    case(state)
+    case(state_dram)
       STATE_DRAM_IDLE: begin
         // Wait for request to process new load
-        dram_rdy = 1'b1;
-        if (rd_req)
-          state_dram_next = STATE_DRAM_LOAD;
+        dram_idle = 1'b1;
+        if      (process_valid &  dram_loaded & gb_idle_q) state_dram_next = STATE_DRAM_SWAP;
+        else if (process_valid & ~dram_loaded & gb_idle_q) state_dram_next = STATE_DRAM_LOAD;
+        else                                             state_dram_next = STATE_DRAM_IDLE;
       end
-      STATE_DRAM_WRITEBACK: begin
-        // Write back to DRAM
-        if (wr_done) begin
-          if (rd_req)
-            state_dram_next = STATE_DRAM_LOAD;
-          else
-            state_dram_next = STATE_DRAM_IDLE;
-        end
+      STATE_DRAM_SWAP: begin
+        // Swap banks (can probably consolidate)
+        swap = 1'b1; // 1-cycle pulse: Signals writeback
+        dram_loaded_deassert = 1'b1; // 1-cycle pulse
+        if (writeback_req) state_dram_next = STATE_DRAM_WRITEBACK;
+        else               state_dram_next = STATE_DRAM_IDLE;
       end
       STATE_DRAM_LOAD: begin
         // Load from DRAM
-        if (ld_done)
-          if (gb_rdy)
-            state_dram_next = STATE_DRAM_SWAP;
-          else
-            state_dram_next = STATE_DRAM_WAIT;
-      end
-      STATE_DRAM_WAIT: begin
-        // Wait for global buffer to be done/idle
-        dram_rdy = 1'b1;
-        if (gb_rdy) begin
-          state_dram_next = STATE_DRAM_SWAP;
-        end
-      end
-      STATE_DRAM_SWAP: begin
-        swap = 1'b1;
-        if (wr_req)
-          state_dram_next = STATE_DRAM_WRITEBACK;
-        else
+        load_active = 1'b1;
+        if (load_done) begin
+          dram_loaded_assert = 1'b1; // 1-cycle pulse
           state_dram_next = STATE_DRAM_IDLE;
+        end
+        else state_dram_next = STATE_DRAM_LOAD;
       end
-      default: /* do nothing */
+      STATE_DRAM_WRITEBACK: begin
+        // Write back to DRAM
+        writeback_active = 1'b1;
+        if (writeback_done) begin
+          if (process_valid) state_dram_next = STATE_DRAM_LOAD;
+          else               state_dram_next = STATE_DRAM_IDLE;
+        end
+        else state_dram_next = STATE_DRAM_WRITEBACK;
+      end
+      default: begin /* do nothing */ end
     endcase
   end
 
+  /* ASSERTIONS */
+  // ~dram_loaded when STATE_DRAM_WRITEBACK
+
+  
 endmodule // dram2gb_cntl
