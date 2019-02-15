@@ -8,13 +8,13 @@ module reductionbuffer (
   input  wire sel, // Selects the accumulator buffer to READ
 
   // Write interface
-  input  wire        wen,   // Enable writing to the activation buffer
-  input  wire [15:0] wdata, // Data input from the MAC array
+  input  wire              wen,   // Enable writing to the activation buffer
+  input  wire [15:0][15:0] wdata, // Data input from the MAC array
 
   // Read interface
-  input  wire              ren,  // Enable reading from the activation buffer
-  input  wire       [ 7:0] ridx, // Which of the 256 rows to read from
-  output reg  [15:0][15:0] rdata // The resulting activations
+  input  wire              ren,   // Enable reading from the activation buffer
+  input  wire       [ 7:0] ridx,  // Which of the 256 rows to read from
+  output reg  [15:0][15:0] rdata  // The resulting activations
 );
   // main memory for the reduction values
   reg [15:0][15:0][15:0] memory [0:1];

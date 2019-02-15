@@ -8,8 +8,6 @@ class ReductionBufferTest : public ::testing::Test {
   protected:
     VerilatorDUT<Vreductionbuffer> dut;
 
-    void write(
-
     void TearDown() override { dut.finish(); }
 };
 
