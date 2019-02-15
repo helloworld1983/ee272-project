@@ -79,6 +79,7 @@ module ram #(
         end
     endcase
   end
+
   assign a_ready = (state == STATE_IDLE);
   assign w_ready = (state == STATE_WRITE);
   assign r_valid = (state == STATE_READ_RESP);
