@@ -33,8 +33,8 @@ module tb (
   wire                 ram2cntl_r_ready;
   wire [DATA_BITS-1:0] ram2cntl_r_data;
   ram #(
-    .ADDR_BITS(ADDR_WIDTH),
-    .DATA_BITS(DATA_WIDTH)
+    .ADDR_BITS(ADDR_BITS),
+    .DATA_BITS(DATA_BITS)
   ) ram_inst (
     .clock, .reset_n,
 
