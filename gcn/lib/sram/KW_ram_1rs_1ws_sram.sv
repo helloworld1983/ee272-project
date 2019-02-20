@@ -22,14 +22,19 @@ module KW_ram_2rws_sram #(
   input  logic [DATA_WIDTH-1:0] p1_data_in,
   output logic [DATA_WIDTH-1:0] p1_data_out,
 
-  /* Port 2 */
+  /* Port 2 control */
+  input logic p1_cs_n,
+  input logic p1_we_n,
+  input logic p1_re_n,
+
+  /* Port 2 datapath */
   input  logic [ADDR_WIDTH-1:0] p2_addr,
   input  logic [DATA_WIDTH-1:0] p2_data_in,
-  output logic [DATA_WIDTH-1:0] p2_data_out,
+  output logic [DATA_WIDTH-1:0] p2_data_out
 );
   // Helper macro
 `define SRAM(n,w) \
-  SRAM2RW``n``x``p sram_``n``x``p ( \
+  SRAM2RW``n``x``w sram_``n``x``w ( \
     .A1  (p1_addr),     \
     .CE1 (clock),       \
     .WEB1(p1_we_n),     \
@@ -45,7 +50,7 @@ module KW_ram_2rws_sram #(
   ); \
 
 `define if_SRAM(n,w) \
-  if (DEPTH == (n) && ADDR_WIDTH == (w)) begin `SRAM(n,w) end
+  if (DATA_WIDTH == (n) && DEPTH == (w)) begin `SRAM(n,w) end
 
   // Instance the SRAMs
   generate
@@ -67,5 +72,6 @@ module KW_ram_2rws_sram #(
     else `if_SRAM(128,32)
     else `if_SRAM( 32,22)
     else `if_SRAM( 32,39)
+    else INVALID_INSTANCE requested_sram_module_not_defined();
   endgenerate
 endmodule
