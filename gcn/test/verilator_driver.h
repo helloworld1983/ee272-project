@@ -76,6 +76,11 @@ class VerilatorDUT {
       }
     }
 
+    /// Evaluate any combinational logic without stepping the clock
+    void eval() {
+      top.eval();
+    }
+
     /// Run the testbench until the value is equal
     template <typename U, typename V>
     uint64_t stepUntil(U T::*m, V v, uint64_t timeout = -1) {
