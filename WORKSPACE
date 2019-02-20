@@ -25,7 +25,6 @@ http_archive(
 
 git_repository(
     name = "com_github_abseil_abseil-cpp",
-    #build_file = "//third_party:com_github_abseil_abseil-cpp.BUILD",
     remote = "https://github.com/abseil/abseil-cpp.git",
     commit = "d78310fe5a82f2e0e6e16509ef8079c8d7e4674e",
 )
