@@ -47,7 +47,7 @@ module KW_ram_2rws_sram #(
     .OEB2(p2_oe_n),     \
     .I2  (p2_data_in),  \
     .O2  (p2_data_out)  \
-  ); \
+  );
 
 `define if_SRAM(n,w) \
   if (DATA_WIDTH == (n) && DEPTH == (w)) begin `SRAM(n,w) end
@@ -74,4 +74,6 @@ module KW_ram_2rws_sram #(
     else `if_SRAM( 32,39)
     else INVALID_INSTANCE requested_sram_module_not_defined();
   endgenerate
+`undef if_SRAM
+`undef SRAM
 endmodule

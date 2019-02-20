@@ -9,12 +9,13 @@ sv_library(
 sv_library(
     name = "KW_sram",
     srcs = [
-        "KW_ram_1rs_1ws_sram.sv",
+        "KW_ram_2rws_sram.sv",
+        "KW_ram_1rws_sram.sv",
     ],
 )
 
 cc_sv_library_verilator(
     name = "KW_sram_cc",
-    top = "KW_ram_2rws_sram",
+    top = "KW_ram_1rws_sram",
     deps = [":KW_sram"],
 )
