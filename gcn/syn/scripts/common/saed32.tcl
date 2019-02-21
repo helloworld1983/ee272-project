@@ -1,3 +1,5 @@
+# SAED32/28 setup script
+# Note: This is intended to be compatible with the Synopsys Reference Methodology flow
 puts "Info: Using Synopsys EDK Gate Libraries (6M, 32nm)"
 
 # Set the SAED EDK32 path
@@ -43,9 +45,9 @@ set slow_corner_extraction slow
 set typ_corner_extraction  typical
 set fast_corner_extraction fast
 
-#######
+################################################################################
 # Library search paths and Milkyway reference libraries (Include IC Compiler ILMs here)
-#######
+################################################################################
 set ADDITIONAL_SEARCH_PATH  " \
 ${SAED32_EDK_LIB_PATH}/io_std/db_nldm/ \
 ${SAED32_EDK_LIB_PATH}/pll/db_nldm/ \
@@ -68,9 +70,9 @@ ${SAED32_EDK_LIB_PATH}/stdcell_rvt/milkyway/saed32nm_rvt_1p9m \
 # Reference Control File to define the MW reference libraries
 set MW_REFERENCE_CONTROL_FILE ""
 
-########
+################################################################################
 # NLDM .db filenames
-########
+################################################################################
 foreach vt {hvt lvt rvt} {
     foreach pvt {ss0p95v125c tt1p05v25c ff1p16vn40c} {
         set stdcell_library(db,$vt,$pvt) [list saed32${vt}_${pvt}.db]
@@ -89,9 +91,9 @@ set sram_library(db,ss0p95v125c) [list saed32sram_ss0p95v125c.db]
 set sram_library(db,ss0p95v25c)  [list saed32sram_ss0p95v25c.db]
 set sram_library(db,ss0p95vn40c) [list saed32sram_ss0p95vn40c.db]
 
-#########
+################################################################################
 # Target technology logical libraries
-#########
+################################################################################
 set TARGET_LIBRARY_FILES " \
 $stdcell_library(db,hvt,$slow_corner_pvt) \
 $stdcell_library(db,rvt,$slow_corner_pvt) \
@@ -116,9 +118,9 @@ foreach max_lib [concat $sram_library(db,$slow_corner_pvt)] \
     lappend MIN_LIBRARY_FILES $max_lib $min_lib
 }
 
-########
+################################################################################
 # Tech files and metal stack extraction models
-########
+################################################################################
 set tluplus_file(typical) "${SAED32_EDK_TECH_PATH}/star_rcxt/saed32nm_1p9m_nominal.tluplus"
 set tluplus_file(fast)    "${SAED32_EDK_TECH_PATH}/star_rcxt/saed32nm_1p9m_Cmin.tluplus"
 set tluplus_file(slow)    "${SAED32_EDK_TECH_PATH}/star_rcxt/saed32nm_1p9m_Cmax.tluplus"
@@ -142,21 +144,19 @@ set MW_GROUND_PORT "VSS"
 set MIN_ROUTING_LAYER "M2"
 set MAX_ROUTING_LAYER "M8"
 
-###########
+################################################################################
 # Don't Use File
-###########
+################################################################################
 # Tcl file to prevent Synopsys from considering irrelevent or unneeded library
 # components.
 set LIBRARY_DONT_USE_FILE                   "../scripts/common/dont_use.tcl"
 set LIBRARY_DONT_USE_PRE_COMPILE_LIST       ""
 set LIBRARY_DONT_USE_PRE_INCR_COMPILE_LIST  ""
 
-##########################################################################################
-# Multi-Voltage Common Variables
-#
-# Define the following MV common variables for the RM scripts for multi-voltage flows.
+################################################################################
+# Multi-Voltage Variables
+################################################################################
 # Use as few or as many of the following definitions as needed by your design.
-##########################################################################################
 
 set PD1              ""           ;# Name of power domain/voltage area  1
 set PD1_CELLS        ""           ;# Instances to include in power domain/voltage area 1
