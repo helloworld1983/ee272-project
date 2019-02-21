@@ -3,8 +3,8 @@
 // Dual Synchronous Read/Write-Port SRAM
 // Note: Uses a simulation model for verilator
 module KW_ram_1rws_sram #(
-  parameter int DATA_WIDTH, // Width of data_in and data_out buses. Must be between 1-256
-  parameter int DEPTH,      // Number of words in the memory array. Must be between 2-256
+  parameter int DATA_WIDTH, // Width of data_in and data_out buses.
+  parameter int DEPTH,      // Number of words in the memory array.
 
   // Number of address bits. Do not override.
   parameter int ADDR_WIDTH = $clog2(DEPTH)
@@ -35,7 +35,7 @@ module KW_ram_1rws_sram #(
   );
 
 `define if_SRAM(n,w) \
-  if (DATA_WIDTH == (n) && DEPTH == (w)) begin `SRAM(n,w) end
+  if (DEPTH == (n) && DATA_WIDTH == (w)) begin `SRAM(n,w) end
 
   // Instance the SRAMs
   generate

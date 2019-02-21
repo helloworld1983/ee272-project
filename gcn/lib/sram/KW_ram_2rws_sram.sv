@@ -50,7 +50,7 @@ module KW_ram_2rws_sram #(
   );
 
 `define if_SRAM(n,w) \
-  if (DATA_WIDTH == (n) && DEPTH == (w)) begin `SRAM(n,w) end
+  if (DEPTH == (n) && DATA_WIDTH == (w)) begin `SRAM(n,w) end
 
   // Instance the SRAMs
   generate
