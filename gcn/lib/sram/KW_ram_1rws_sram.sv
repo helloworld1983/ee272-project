@@ -25,13 +25,12 @@ module KW_ram_1rws_sram #(
   // Helper macro
 `define SRAM(n,w) \
   SRAM1RW``n``x``w sram_``n``x``w ( \
-    .A1  (p1_addr),     \
-    .CE1 (clock),       \
-    .WEB1(p1_we_n),     \
-    .OEB1(p1_re_n),     \
-    .I   (p1_data_in),  \
-    .O   (p1_data_out), \
-    .A   (p2_addr),     \
+    .A  (p1_addr),     \
+    .CE (clock),       \
+    .WEB(p1_we_n),     \
+    .OEB(p1_re_n),     \
+    .I  (p1_data_in),  \
+    .O  (p1_data_out)  \
   );
 
 `define if_SRAM(n,w) \
