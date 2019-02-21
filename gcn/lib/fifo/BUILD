@@ -3,7 +3,10 @@ load("//tools/verilator:rules.bzl", "cc_sv_library_verilator")
 
 sv_library(
     name = "KW_fifo",
-    srcs = ["KW_fifo.sv"],
+    srcs = [
+        "KW_fifo.sv",
+        "KW_asymdata_inbuf.sv",
+    ],
 )
 
 cc_sv_library_verilator(
