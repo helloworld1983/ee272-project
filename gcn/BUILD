@@ -26,6 +26,7 @@ sv_library(
 sv_library(
     name = "reductionbuffer",
     srcs = ["reductionbuffer.sv"],
+    deps = ["//gcn/lib/sram:KW_sram"],
 )
 
 sv_library(
