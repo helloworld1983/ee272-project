@@ -4,7 +4,7 @@ Ann Wu, Kevin Kiningham
 
 ## Build Instructions
 
-Staal uses the [Bazel](https://bazel.build/) build system.
+The Graph Neural Network Accelerator (GCN) uses the [Bazel](https://bazel.build/) build system.
 If you do not already have Bazel installed, follow the [installation instructions](https://docs.bazel.build/versions/master/install.html).
 
 ### Running the tests
