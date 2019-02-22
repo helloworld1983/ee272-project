@@ -8,11 +8,6 @@ sv_library(
 )
 
 sv_library(
-    name = "execute",
-    srcs = ["execute.sv"],
-)
-
-sv_library(
     name = "mac4x4",
     srcs = ["mac4x4.sv"],
 )
@@ -27,6 +22,15 @@ sv_library(
     name = "reductionbuffer",
     srcs = ["reductionbuffer.sv"],
     deps = ["//gcn/lib/sram:KW_sram"],
+)
+
+sv_library(
+    name = "execute",
+    srcs = ["execute.sv"],
+    deps = [
+        ":mac4x4",
+        ":reductionbuffer",
+    ],
 )
 
 sv_library(

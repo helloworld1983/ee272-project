@@ -33,6 +33,17 @@ cc_sv_library_verilator(
     deps = ["//gcn:reductionbuffer"],
 )
 
+cc_sv_library_verilator(
+    name = "execute",
+    top = "execute",
+    trace = False,
+    vopts = [
+        "-O3",
+        "--assert",
+    ],
+    deps = ["//gcn:execute"],
+)
+
 cc_test(
     name = "mac4x4_test",
     srcs = ["mac4x4_test.cpp"],

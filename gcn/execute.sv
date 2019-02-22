@@ -1,25 +1,37 @@
+`default_nettype none
+
 // Wrapper around GCN execution back-end
-module execute #(parameter INPUT_W    = 512,
-                 parameter INPUT_H    = 128,
-                 parameter WEIGHT_W   = 512,
-                 parameter WEIGHT_H   = 256,
-                 parameter ACTIVATE_W = 256,
-                 parameter ACTIVATE_H = 256,
-                 parameter OUTPUT_W   = 128,
-                 parameter OUTPUT_H   = 256)
-(
-    input           clock,
-    input           reset_n,
-    input shortint  in_data     [INPUT_W-1:0][INPUT_H-1:0],
-    input shortint  in_weight   [WEIGHT_W-1:0][WEIGHT_H-1:0],
-    input shortint  in_activate [ACTIVATE_W-1:0][ACTIVATE_H-1:0],
-    input           in_valid,
+module execute (
+  input logic clock,
+  input logic reset_n,
 
-    output shortint out_data    [OUTPUT_W-1:0][OUTPUT_H-1:0],
-    output          out_valid
+  output logic swap_ready,
+  input  logic swap_valid,
+
+  /* Read channel */
+  input  logic              r_en_n,
+  input  logic [ 7:0]       r_addr,
+  output logic [15:0][15:0] r_data
 );
+  logic              w_en_n;
+  logic [ 7:0]       w_addr;
+  logic [15:0][15:0] w_data;
 
-// TODO: add logic
+  reductionbuffer rbuf (
+    .clock(clock),
+    .reset_n(reset_n),
 
+    .swap_ready(swap_ready),
+    .swap_valid(swap_valid),
+
+    /* Write channel */
+    .w_en_n(w_en_n),
+    .w_addr(w_addr),
+    .w_data(w_data),
+
+    /* Read channel */
+    .r_en_n(r_en_n),
+    .r_addr(r_addr),
+    .r_data(r_data)
+  );
 endmodule
-

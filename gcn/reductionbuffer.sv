@@ -10,12 +10,12 @@ module reductionbuffer (
   output logic swap_ready, // The accumulator buffer is ready to swap
   input  logic swap_valid, // The accumulator buffer has a request to swap
 
-  // Write interface
+  /* Write channel */
   input logic              w_en_n, // Enable writing to the activation buffer. Active low.
   input logic [ 7:0]       w_addr, // Write address
   input logic [15:0][15:0] w_data, // Data input from the MAC array
 
-  // Read interface
+  /* Read interface */
   input  logic              r_en_n, // Read from the activation buffer. Active low.
   input  logic [ 7:0]       r_addr, // Read address
   output logic [15:0][15:0] r_data  // The resulting activations
