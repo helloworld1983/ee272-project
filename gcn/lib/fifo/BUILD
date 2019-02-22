@@ -7,6 +7,7 @@ sv_library(
         "KW_fifo.sv",
         "KW_asymdata_inbuf.sv",
     ],
+    visibility = ["//gcn:__subpackages__"],
 )
 
 cc_sv_library_verilator(
