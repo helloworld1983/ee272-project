@@ -26,6 +26,7 @@ module KW_ram_1ra_1ws_dff #(
   input  wire [DATA_WIDTH-1:0] data_in,
   output reg  [DATA_WIDTH-1:0] data_out
 );
+`ifndef SYNTHESIS
   initial begin
     assert (DATA_WIDTH >= 1 && DATA_WIDTH <= 256) else
       $fatal("Invalid DATA_WIDTH");
@@ -34,6 +35,7 @@ module KW_ram_1ra_1ws_dff #(
     assert (RESET_MODE == 0 || RESET_MODE == 1) else
       $fatal("Invalid RESET_MODE");
   end
+`endif
 
   reg [DEPTH-1:0][DATA_WIDTH-1:0] memory;
 
