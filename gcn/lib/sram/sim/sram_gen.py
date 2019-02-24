@@ -28,7 +28,7 @@ parser.add_argument('ports', type=int, help='Number of ports', choices=[1, 2])
 sram_1_rw_template = """`default_nettype none
 
 module {name} (
-  input wire [{addr_bits}-1:0] clock,
+  input wire [{addr_bits}-1:0] A,
   input wire CE,
   input wire WEB,
   input wire OEB,

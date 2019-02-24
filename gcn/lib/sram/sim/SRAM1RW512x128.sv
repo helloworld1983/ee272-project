@@ -1,7 +1,7 @@
 `default_nettype none
 
 module SRAM1RW512x128 (
-  input wire [9-1:0] clock,
+  input wire [9-1:0] A,
   input wire CE,
   input wire WEB,
   input wire OEB,
