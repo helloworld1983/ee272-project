@@ -12,6 +12,7 @@ sv_library(
         "KW_ram_2rws_sram.sv",
         "KW_ram_1rws_sram.sv",
         "KW_ram_1ra_1ws_dff.sv",
+        "KW_ram_1rws_dff.sv",
     ],
     deps = [":SRAM1RW"],
     visibility = ["//gcn:__subpackages__"],
@@ -20,5 +21,11 @@ sv_library(
 cc_sv_library_verilator(
     name = "KW_sram_cc",
     top = "KW_ram_1rws_sram",
+    deps = [":KW_sram"],
+)
+
+cc_sv_library_verilator(
+    name = "KW_dff_cc",
+    top = "KW_ram_1rws_dff",
     deps = [":KW_sram"],
 )

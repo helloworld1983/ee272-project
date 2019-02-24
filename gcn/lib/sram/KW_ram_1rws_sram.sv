@@ -1,6 +1,6 @@
 `default_nettype none
 
-// Dual Synchronous Read/Write-Port SRAM
+// Single Synchronous Read/Write-Port RAM (SRAM macro based)
 // Note: Uses a simulation model for verilator
 module KW_ram_1rws_sram #(
   parameter int DATA_WIDTH, // Width of data_in and data_out buses.
