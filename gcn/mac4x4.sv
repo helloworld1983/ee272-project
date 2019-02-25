@@ -39,7 +39,7 @@ module mac4x4 (
   generate
     for (j = 0; j < 4; j = j + 1) begin : SLICE
       // Compute which slice should be written to
-      wire w_en_slice_n = w_en_n || (w_col != j);
+      wire w_en_slice_n = (w_col == j) ? w_en_n : 1'b1;
 
       wire [3:0][15:0] r_data;
       KW_dblbuf #(
