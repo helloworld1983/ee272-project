@@ -11,6 +11,12 @@ sv_library(
     visibility = ["//gcn:__subpackages__"],
 )
 
+sv_library(
+    name = "KW_pipe_reg",
+    srcs = ["KW_pipe_reg.sv"],
+    visibility = ["//gcn:__subpackages__"],
+)
+
 cc_sv_library_verilator(
     name = "KW_dblbuf_cc",
     top = "KW_dblbuf",
