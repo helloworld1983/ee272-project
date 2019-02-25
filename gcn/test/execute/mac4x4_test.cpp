@@ -8,7 +8,6 @@
 
 #include "gcn/test/verilator_driver.h"
 #include "gcn/test/execute/Vmac4x4/Vmac4x4.h"
-#include "gcn/test/execute/Vmac16x16/Vmac16x16.h"
 
 using ::testing::ElementsAre;
 using Vec4 = Eigen::Matrix<uint16_t, 4, 1>;
@@ -25,46 +24,47 @@ void peekVec4(Vec4& result, const QData* vec) {
 class Mac4x4Test : public ::testing::Test {
   protected:
     VerilatorDUT<Vmac4x4> dut;
-    // Which buffer to read/write to
-    // 0 means we READ from buffer 0 and WRITE to buffer 1
-    uint8_t sel = 0;
 
     void SetUp() override { dut.reset(); }
     void TearDown() override { dut.finish(); }
 
-    void swapBuffers() { sel = !sel; }
+    void swapBuffers() {
+      dut.poke(&Vmac4x4::swap_n, 0);
+      dut.step();
+      dut.poke(&Vmac4x4::swap_n, 1);
+    }
 
-    void loadWeightArray(uint8_t col, uint8_t idx, const Vec4& w) {
+    void loadWeightArray(uint8_t col, uint8_t addr, const Vec4& w) {
       assert(col < 4 && "Invalid column");
-      assert(idx < 32 && "Invalid index");
-      pokeVec4(&dut.top.wb, w);
-      dut.poke(&Vmac4x4::wbcol, col);
-      dut.poke(&Vmac4x4::wbidx, idx);
-      dut.poke(&Vmac4x4::wen, 1);
-      dut.poke(&Vmac4x4::ren, 0);
-      dut.poke(&Vmac4x4::sel, sel);
+      assert(addr < 32 && "Invalid index");
+      pokeVec4(&dut.top.w_data, w);
+      dut.poke(&Vmac4x4::w_col, col);
+      dut.poke(&Vmac4x4::w_addr, addr);
+      dut.poke(&Vmac4x4::w_en_n, 0);
+      dut.poke(&Vmac4x4::r_en_n, 1);
+      dut.poke(&Vmac4x4::swap_n, 1);
       dut.step();
     }
 
-    void loadWeightMatrix(uint8_t idx, const Mat4& w) {
+    void loadWeightMatrix(uint8_t addr, const Mat4& w) {
       for (int i = 0; i < 4; i++) {
         // Note: A column of the mac array corresponds to a row of the weight matrix
         // Since a column of the mac array is load each cycle, we load a row
         // of the weight matrix at a time
-        loadWeightArray(i, idx, w.row(i));
+        loadWeightArray(i, addr, w.row(i));
       }
     }
 
-    void gmv4(Vec4* result, uint8_t idx, const Vec4& a, const Vec4& c) {
-      assert(idx < 32 && "Invalid index");
-      dut.poke(&Vmac4x4::rbidx, idx);
-      dut.poke(&Vmac4x4::wen, 0);
-      dut.poke(&Vmac4x4::ren, 1);
-      dut.poke(&Vmac4x4::sel, sel);
+    void gmv4(Vec4* result, uint8_t addr, const Vec4& a, const Vec4& c) {
+      assert(addr < 32 && "Invalid index");
+      dut.poke(&Vmac4x4::r_addr, addr);
+      dut.poke(&Vmac4x4::w_en_n, 1);
+      dut.poke(&Vmac4x4::r_en_n, 0);
+      dut.poke(&Vmac4x4::swap_n, 1);
       pokeVec4(&dut.top.a, a);
       pokeVec4(&dut.top.c, c);
       dut.step();
-      dut.poke(&Vmac4x4::ren, 0);
+      dut.poke(&Vmac4x4::r_en_n, 1);
       dut.step();
       peekVec4(*result, &dut.top.x);
     }

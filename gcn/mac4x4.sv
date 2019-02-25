@@ -1,4 +1,5 @@
 `default_nettype none
+
 // Compute AxB + C over N cycles
 // We can express the matrix multiply as follows
 //
@@ -13,48 +14,54 @@ module mac4x4 (
   input wire clock,
   input wire reset_n,
 
-  // Control
-  input wire wen, // enable writing to the internal weight buffer
-  input wire ren, // enable reading from the internal weight buffer
-  input wire sel, // Selects the weight buffer to READ
+  /* Double buffer control */
+  input logic swap_n,
+
+  /* Memory write control */
+  // enable writing to the internal weight buffer. Active low.
+  input logic w_en_n,
 
   // Weight inputs
-  input wire [1:0] wbcol, // Column of the 4x4 array two write to
-  input wire [4:0] wbidx, // weight index for writing
-  input wire [4:0] rbidx, // weight index for reading
-  input wire [3:0][15:0] wb, // weights to write (if enabled)
+  input logic [ 1:0] w_col, // Column of the 4x4 array two write to
+  input logic [ 4:0] w_addr, // weight index for writing
+  input logic [3:0][15:0] w_data, // weights to write (if enabled)
 
-  // Data inputs
-  input wire [3:0][15:0] a, // data
-  input wire [3:0][15:0] c, // accumulator
+  /* MAC Control */
+  input logic r_en_n, // Read from the internal weight buffer and compute a MAC. Active low.
+  input logic [4:0] r_addr, // Weight index for reading
 
-  // Data Output
-  output wire [3:0][15:0] x // result
+  /* MAC datapath */
+  input  logic [3:0][15:0] a, // Data
+  input  logic [3:0][15:0] c, // Accumulator
+  output logic [3:0][15:0] x  // Result
 );
   genvar j;
   generate
     for (j = 0; j < 4; j = j + 1) begin : SLICE
       // Compute which slice should be written to
-      wire wen_slice = wen && (wbcol == j);
+      wire w_en_slice_n = w_en_n || (w_col != j);
 
-      wire [3:0][15:0] rb;
-      mac4x4_buffer buffer (
-        .clock,
-        .reset_n,
-        .sel  (sel),
-        .wen  (wen_slice),
-        .waddr(wbidx),
-        .wdata(wb),
-        .ren  (ren),
-        .raddr(rbidx),
-        .rdata(rb)
+      wire [3:0][15:0] r_data;
+      KW_dblbuf #(
+        .DATA_WIDTH(4 * 16),
+        .DEPTH(32)
+      ) buffer (
+        .clock(clock),
+        .reset_n(reset_n),
+        .swap_n(swap_n),
+        .w_en_n(w_en_slice_n),
+        .w_addr(w_addr),
+        .w_data(w_data),
+        .r_en_n(r_en_n),
+        .r_addr(r_addr),
+        .r_data(r_data)
       );
 
       mac4x4_slice mac (
-        .clock,
-        .reset_n,
+        .clock(clock),
+        .reset_n(reset_n),
         .a(a),
-        .b(rb),
+        .b(r_data),
         .c(c[j]),
         .x(x[j])
       );
@@ -62,42 +69,17 @@ module mac4x4 (
   endgenerate
 endmodule
 
-module mac4x4_buffer (
-  input wire clock,
-  input wire reset_n,
-
-  // Control
-  input wire sel, // Select the buffer to READ FROM
-
-  // Write interface
-  input wire             wen,   // Write enable
-  input wire [4:0]       waddr, // Write address
-  input wire [3:0][15:0] wdata,
-
-  // Read interface
-  input  wire             ren,   // Read enable
-  input  wire [4:0]       raddr, // Read address
-  output reg  [3:0][15:0] rdata
-);
-  // Read/Write data
-  reg [31:0][3:0][15:0] data [0:1];
-  always_ff @(posedge clock) begin
-    if (ren) rdata <= data[sel][raddr];
-    if (wen) data[!sel][waddr] <= wdata;
-  end
-endmodule
-
 module mac4x4_slice (
-  input wire clock,
-  input wire reset_n,
+  input logic clock,
+  input logic reset_n,
 
   // Data input
-  input wire [3:0][15:0] a,
-  input wire [3:0][15:0] b,
-  input wire      [15:0] c,
+  input logic [3:0][15:0] a,
+  input logic [3:0][15:0] b,
+  input logic      [15:0] c,
 
   // Data output
-  output reg [15:0] x
+  output logic [15:0] x
 );
   always_ff @(posedge clock or negedge reset_n) begin
     if (~reset_n) begin

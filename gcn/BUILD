@@ -10,6 +10,7 @@ sv_library(
 sv_library(
     name = "mac4x4",
     srcs = ["mac4x4.sv"],
+    deps = ["//gcn/lib/dp:KW_dblbuf"],
 )
 
 sv_library(
