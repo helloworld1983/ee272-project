@@ -1,15 +1,32 @@
 set sdc_version 2.1
 
-set clock_period 1.000
-set setup_margin 0.05
-set hold_margin  0.0
-
+###############################################################################
 # Clock
-create_clock -name "clock" -period 1 [get_ports "clock"]
+###############################################################################
+create_clock [get_ports clock] -name CLOCK -period 1.000
 
-set_input_delay 0.1 -clock "clock" [all_inputs]
+# From PLL uncertainty
+set_clock_uncertainty 0.017 [get_clocks CLOCK]
 
-set_output_delay 0.1 -clock "clock" [all_outputs]
+###############################################################################
+# Reset
+###############################################################################
+set_max_delay 1 -from reset_n
 
-# Max delay
-set_max_delay 10 -from reset
+###############################################################################
+# Inputs
+###############################################################################
+# Driving cell is minimum sized inverter
+set_driving_cell -lib_cell INVX1_HVT -library saed32hvt_ss0p95v125c [all_inputs]
+
+###############################################################################
+# Outputs
+###############################################################################
+# from "load_of [get_lib_pins saed32hvt_ss0p95v125c/DFFARX2_HVT/D]"
+set_load 0.49 [all_outputs]
+
+###############################################################################
+# Area
+###############################################################################
+# Attempt to use minimum area
+set_max_area 0.0
