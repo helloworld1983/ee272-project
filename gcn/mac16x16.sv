@@ -1,26 +1,32 @@
 `default_nettype none
+
+// Compute AxB + C over N cycles
 module mac16x16 (
-  input clock,
-  input reset_n,
+  input logic clock,
+  input logic reset_n,
 
-  // Control
-  input wire wen, // enable writing to the internal weight buffer
-  input wire ren, // enable reading from the internal weight buffer
-  input wire sel, // Selects the weight buffer to READ
+  /* Double buffer control */
+  input logic swap_n,
 
-  // Weight inputs
-  input wire [1:0] wbcol, // Column of the 4x4 array two write to
-  input wire [4:0] wbidx, // weight index for writing
-  input wire [4:0] rbidx, // weight index for reading
-  input wire [3:0][3:0][15:0] wb, // weights to write (if enabled)
+  /* Weight write interface */
+  input logic w_en_n, // Write to the internal weight buffer. Active low.
+  input logic [3:0] w_col, // Column of the 16x16 array to write
+  input logic [4:0] w_addr, // weight index for writing
+  input logic [3:0][3:0][15:0] w_data, // weights to write (if enabled)
 
-  // Data inputs
-  input wire [3:0][3:0][15:0] a, // data
-  input wire [3:0][3:0][15:0] c, // accumulator
+  /* MAC Control */
+  input logic r_en_n, // Read from the internal weight buffer and compute a MAC. Active low.
+  input logic [4:0] r_addr, // Weight index for reading
 
-  // Data Output
-  output wire [3:0][3:0][15:0] x // result
+  /* MAC datapath */
+  input  logic [3:0][3:0][15:0] a, // Data
+  input  logic [3:0][3:0][15:0] c, // Accumulator
+  output logic [3:0][3:0][15:0] x  // Result
 );
+  // For now, all tiles get data input at the same time
+  wire [3:0][3:0][15:0] a_tile;
+  assign a_tile = a;
+
   // The 16x16 array is decomposed into 16 4x4 mac arrays
   genvar i, j;
   generate
@@ -35,20 +41,22 @@ module mac16x16 (
       end
 
       for (j = 0; j < 4; j = j + 1) begin : COL
+        // Decode which column is being written to
+        wire w_en_tile_n = (j == w_col[3:2]) ? w_en_n : 1'b1;
         mac4x4 mac (
-          .clock,
-          .reset_n,
+          .clock  (clock),
+          .reset_n(reset_n),
+          .swap_n (swap_n),
 
-          .sel  (sel),
-          .wen  (wen),
-          .ren  (ren),
+          .w_en_n (w_en_tile_n),
+          .w_col  (w_col[1:0]),
+          .w_addr (w_addr),
+          .w_data (w_data[i]),
 
-          .wbcol(wbcol),
-          .wbidx(wbidx),
-          .wb   (wb[i]),
-          .rbidx(rbidx),
+          .r_en_n (r_en_n),
+          .r_addr (r_addr),
 
-          .a(a[i]),
+          .a(a_tile[i]),
           .c(c_tile[j]),
           .x(x_tile[j])
         );

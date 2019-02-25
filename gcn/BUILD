@@ -29,8 +29,9 @@ sv_library(
     name = "execute",
     srcs = ["execute.sv"],
     deps = [
-        ":mac4x4",
+        ":mac16x16",
         ":reductionbuffer",
+        "//gcn/lib/dp:KW_pipe_reg",
     ],
 )
 

@@ -17,13 +17,10 @@ module mac4x4 (
   /* Double buffer control */
   input logic swap_n,
 
-  /* Memory write control */
-  // enable writing to the internal weight buffer. Active low.
-  input logic w_en_n,
-
-  // Weight inputs
-  input logic [ 1:0] w_col, // Column of the 4x4 array two write to
-  input logic [ 4:0] w_addr, // weight index for writing
+  /* Weight write interface */
+  input logic w_en_n, // Write to the internal weight buffer. Active low.
+  input logic [1:0] w_col, // Column of the 4x4 array to write
+  input logic [4:0] w_addr, // weight index for writing
   input logic [3:0][15:0] w_data, // weights to write (if enabled)
 
   /* MAC Control */
