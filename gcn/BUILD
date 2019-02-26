@@ -70,3 +70,14 @@ sv_library(
         ":execute",
     ],
 )
+
+sv_library(
+    name = "gcn_backend",
+    srcs = [
+        "gcn_backend.sv",
+    ],
+    deps = [
+        ":globalbuffer",
+        ":execute",
+    ],
+)
