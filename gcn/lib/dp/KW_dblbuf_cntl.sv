@@ -48,10 +48,12 @@ module KW_dblbuf_cntl #(
 
   assign rw1_cs_n = (r_bank == 0) ? r_en_n : w_en_n;
   assign rw1_we_n = (r_bank == 0); // we_n is 1 if NOT writing
+  assign rw1_re_n = (r_bank != 0);
   assign rw1_addr = (r_bank == 0) ? r_addr : w_addr;
 
   assign rw2_cs_n = (r_bank == 1) ? r_en_n : w_en_n;
   assign rw2_we_n = (r_bank == 1); // we_n is 1 if NOT writing
+  assign rw2_re_n = (r_bank != 1);
   assign rw2_addr = (r_bank == 1) ? r_addr : w_addr;
 
   assign rw1_data_in = (r_bank == 0) ? {DATA_WIDTH{1'bX}} : w_data;
