@@ -153,6 +153,10 @@ globalbuffer
 );
 
 // gb2execute_cntl goes here
+gb2execute_cntl gb2execute_cntl
+(
+    .*
+);
 
 execute
 execute (

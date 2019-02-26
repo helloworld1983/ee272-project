@@ -120,7 +120,7 @@ for (o = 0 ; o < (NUM_WGT_RBANK+NUM_WGT_WBANK) ; o++) begin : GEN_SRAM_WGT
        .cs_n    (1'b0),
        .we_n    (wgt_wen_int[o] & wgt_wsel_int[o]),
        .re_n    (wgt_ren_int[o] & wgt_rsel_int[o]),
-       .rw_addr (), // FIXME need to separate read and write addresses
+       .rw_addr ('0), // FIXME need to separate read and write addresses
        .data_in (wgt_wdata_int[o][(SRAM_WIDTH_WGT*(p+1)-1):(SRAM_WIDTH_WGT*p)]),
        .data_out(wgt_rdata_int[o][(SRAM_WIDTH_WGT*(p+1)-1):(SRAM_WIDTH_WGT*p)])
       );
@@ -150,6 +150,7 @@ logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0][ACT_WIDTH-1:0]         act_rdata_int, ac
 logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0]                        act_rsel_int, act_wsel_int;
 logic [NUM_ACT_RBANK+NUM_ACT_WBANK-1:0]                        act_ren_int, act_wen_int;
 
+// FIXME simplify decoding logic by taking advantage of CEN/WEN
 genvar j;
 generate
 for (j = 0 ; j < NUM_ACT_RBANK ; j++) begin
@@ -205,7 +206,7 @@ for (l = 0 ; l < (NUM_ACT_RBANK+NUM_ACT_WBANK) ; l++) begin : GEN_SRAM_ACT
        .cs_n    (1'b0),
        .we_n    (act_wen_int[l] & act_wsel_int[l]),
        .re_n    (act_ren_int[l] & act_rsel_int[l]),
-       .rw_addr (), // FIXME need to separate read and write addresses
+       .rw_addr ('0), // FIXME need to separate read and write addresses
        .data_in (act_wdata_int[l][(SRAM_WIDTH_ACT*(w+1)-1):(SRAM_WIDTH_ACT*w)]),
        .data_out(act_rdata_int[l][(SRAM_WIDTH_ACT*(w+1)-1):(SRAM_WIDTH_ACT*w)])
       );
