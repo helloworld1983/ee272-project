@@ -21,7 +21,7 @@ module execute (
   input logic [3:0][3:0][15:0] mac_c,
 
   /* RBuf write control */
-  logic [7:0] rbuf_w_addr,
+  input logic [7:0] rbuf_w_addr,
 
   /* RBuf Read channel */
   input  logic              rbuf_r_en_n,

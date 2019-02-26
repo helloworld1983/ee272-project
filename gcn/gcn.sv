@@ -40,20 +40,40 @@ module gcn #(
 );
 
 /* FRONTEND */
-logic [(DATA_WIDTH-1):0] io2dram_data [0:1];
+logic [15:0]  rd_data_UNCONNECTED [0:7];
+logic [15:0]  wr_data_UNCONNECTED [0:7];
 
-iocntl #(
-  .ADDR_WIDTH(ADDR_WIDTH),
-  .DATA_WIDTH(DATA_WIDTH),
-  .BATCH_SIZE(BATCH_SIZE)
-) iocntl (
+/*
+
+iocntl
+iocntl (
   .*, // Clock/reset_n, rd/wr signals
-  .io2dram_cs(), // FIXME connect with DRAM
-  .io2dram_cmd(), // FIXME connect with DRAM
-  .io2dram_addr(), // FIXME connect with DRAM
-  .io2dram_bank(), // FIXME connect with DRAM
-  .io2dram_data(io2dram_data) // FIXME connect with DRAM
+  // Read interface
+  .rd_addr(28'b0),
+  .rd_req(1'b0),
+  .rd_gnt(),
+  .rd_valid(),
+  .rd_data(rd_data_UNCONNECTED),
+  // Write interface
+  .wr_addr(28'b0),
+  .wr_req(1'b0),
+  .wr_gnt(),
+  .wr_data(wr_data_UNCONNECTED),
+  // RAM address channel
+  .cntl2ram_a_valid(), // FIXME connect with DRAM
+  .cntl2ram_a_ready(1'b0), // FIXME connect with DRAM
+  .cntl2ram_a_write(), // FIXME connect with DRAM
+  .cntl2ram_a_addr(), // FIXME connect with DRAM
+  // RAM write data channel
+  .cntl2ram_w_valid(), // FIXME connect with DRAM
+  .cntl2ram_w_ready(1'b0), // FIXME connect with DRAM
+  .cntl2ram_w_data(), // FIXME connect with DRAM
+  // RAM read data channel
+  .ram2cntl_r_valid(1'b0), // FIXME connect with DRAM
+  .ram2cntl_r_ready(), // FIXME connect with DRAM
+  .ram2cntl_r_data(32'b0) // FIXME connect with DRAM
 );
+*/
 
 
 /* BACKEND */
@@ -94,6 +114,7 @@ logic mac_done; // FIXME: connect to mac array
 
 assign process_done = mac_done;
 
+/*
 dram2gb_cntl 
 #(
   .BATCH_SIZE(BATCH_SIZE),
@@ -119,6 +140,7 @@ swaparbitrator
 ) swaparbitrator (
   .*
 );
+*/
 
 globalbuffer
 #(
@@ -133,5 +155,29 @@ globalbuffer
 ) globalbuffer (
   .*
 );
+
+execute
+execute (
+  .*,
+  /* Swap control */
+  .swap_n(1'b0),
+  /* Mac write channel */
+  .mac_w_en_n('0),
+  .mac_w_col('0),
+  .mac_w_addr('0),
+  .mac_w_data('0),
+  /* Mac input channel */
+  .mac_r_en_n('0),
+  .mac_r_addr('0),
+  .mac_a('0),
+  .mac_c('0),
+  /* RBuf write control */
+  .rbuf_w_addr('0),
+  /* RBuf Read channel */
+  .rbuf_r_en_n('0),
+  .rbuf_r_addr('0),
+  .rbuf_r_data()
+);
+
 
 endmodule // gcn.sv

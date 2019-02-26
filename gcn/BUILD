@@ -67,5 +67,6 @@ sv_library(
         ":globalbuffer",
         ":dram2gb_cntl",
         ":iocntl",
+        ":execute",
     ],
 )
