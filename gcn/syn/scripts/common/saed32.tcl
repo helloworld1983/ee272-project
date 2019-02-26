@@ -1,5 +1,6 @@
 # SAED32/28 setup script
 # Note: This is intended to be compatible with the Synopsys Reference Methodology flow
+puts "Info: Running script [info script]"
 puts "Info: Using Synopsys EDK Gate Libraries (6M, 32nm)"
 
 # Set the SAED EDK32 path
@@ -144,40 +145,4 @@ set MW_GROUND_PORT "VSS"
 set MIN_ROUTING_LAYER "M2"
 set MAX_ROUTING_LAYER "M8"
 
-################################################################################
-# Don't Use File
-################################################################################
-# Tcl file to prevent Synopsys from considering irrelevent or unneeded library
-# components.
-set LIBRARY_DONT_USE_FILE                   "../scripts/common/dont_use.tcl"
-set LIBRARY_DONT_USE_PRE_COMPILE_LIST       ""
-set LIBRARY_DONT_USE_PRE_INCR_COMPILE_LIST  ""
-
-################################################################################
-# Multi-Voltage Variables
-################################################################################
-# Use as few or as many of the following definitions as needed by your design.
-
-set PD1              ""           ;# Name of power domain/voltage area  1
-set PD1_CELLS        ""           ;# Instances to include in power domain/voltage area 1
-set VA1_COORDINATES  {}           ;# Coordinates for voltage area 1
-set MW_POWER_NET1    "VDD1"       ;# Power net for voltage area 1
-set MW_POWER_PORT1   "VDD"        ;# Power port for voltage area 1
-
-set PD2              ""           ;# Name of power domain/voltage area  2
-set PD2_CELLS        ""           ;# Instances to include in power domain/voltage area 2
-set VA2_COORDINATES  {}           ;# Coordinates for voltage area 2
-set MW_POWER_NET2    "VDD2"       ;# Power net for voltage area 2
-set MW_POWER_PORT2   "VDD"        ;# Power port for voltage area 2
-
-set PD3              ""           ;# Name of power domain/voltage area  3
-set PD3_CELLS        ""           ;# Instances to include in power domain/voltage area 3
-set VA3_COORDINATES  {}           ;# Coordinates for voltage area 3
-set MW_POWER_NET3    "VDD3"       ;# Power net for voltage area 3
-set MW_POWER_PORT3   "VDD"        ;# Power port for voltage area 3
-
-set PD4              ""           ;# Name of power domain/voltage area  4
-set PD4_CELLS        ""           ;# Instances to include in power domain/voltage area 4
-set VA4_COORDINATES  {}           ;# Coordinates for voltage area 4
-set MW_POWER_NET4    "VDD4"       ;# Power net for voltage area 4
-set MW_POWER_PORT4   "VDD"        ;# Power port for voltage area 4
+puts "Info: Completed script [info script]"
