@@ -21,14 +21,15 @@ module execute (
   input logic [3:0][3:0][15:0] mac_a,
   input logic [3:0][3:0][15:0] mac_c,
 
+  /* RBuf write control */
+  logic [7:0] rbuf_w_addr;
+
   /* RBuf Read channel */
   input  logic              rbuf_r_en_n,
   input  logic [ 7:0]       rbuf_r_addr,
   output logic [15:0][15:0] rbuf_r_data
 );
   logic rbuf_swap_ready, rbuf_swap_valid;
-  logic rbuf_w_en_n;
-  logic [7:0] rbuf_w_addr;
   logic [15:0][15:0] rbuf_w_data;
 
   // Swapping logic
@@ -63,7 +64,7 @@ module execute (
   ) pipe (
     .clock  (clock),
     .reset_n(reset_n),
-    .a      ({rbuf_w_en_n, rbuf_w_addr}),
+    .a      ({mac_r_en_n, rbuf_w_addr}),
     .b      ({rbuf_w_en_n_ff, rbuf_w_addr_ff})
   );
 
