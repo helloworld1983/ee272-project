@@ -13,9 +13,9 @@ class ReductionBufferTest : public ::testing::Test {
     VerilatorDUT<Vreductionbuffer> dut;
 
     void swapBuffers() {
-      dut.poke(&Vreductionbuffer::swap_valid, 1);
+      dut.poke(&Vreductionbuffer::swap_n, 0);
       dut.step();
-      dut.poke(&Vreductionbuffer::swap_valid, 0);
+      dut.poke(&Vreductionbuffer::swap_n, 1);
     }
 
     void write(uint16_t (&data)[16], uint8_t addr) {
@@ -37,6 +37,7 @@ class ReductionBufferTest : public ::testing::Test {
     void SetUp() override {
       dut.poke(&Vreductionbuffer::w_en_n, 1);
       dut.poke(&Vreductionbuffer::r_en_n, 1);
+      dut.poke(&Vreductionbuffer::swap_n, 1);
       dut.reset();
     }
 

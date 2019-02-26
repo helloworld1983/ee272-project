@@ -5,10 +5,8 @@ module reductionbuffer (
   input logic reset_n,
 
   /* Control interface */
-  // NOTE: A swap occurs on the positive edge of clock after ready/valid
-  // are both 1
-  output logic swap_ready, // The accumulator buffer is ready to swap
-  input  logic swap_valid, // The accumulator buffer has a request to swap
+  // NOTE: A swap occurs on the positive edge of clock
+  input logic swap_n, // Request to swap. Active low.
 
   /* Write channel */
   input logic              w_en_n, // Enable writing to the activation buffer. Active low.
@@ -27,12 +25,11 @@ module reductionbuffer (
     if (~reset_n) begin
       r_bank <= 1'b0;
       w_bank <= 1'b1;
-    end else if (swap_ready && swap_valid) begin
+    end else if (~swap_n) begin
       r_bank <= w_bank;
       w_bank <= r_bank;
     end
   end
-  assign swap_ready = 1'b1;
 
   // SRAM banks
   localparam int SRAM_WIDTH = 128;

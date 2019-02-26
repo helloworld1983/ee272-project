@@ -6,8 +6,7 @@ module execute (
   input logic reset_n,
 
   /* Swap control */
-  output logic swap_ready,
-  input  logic swap_valid,
+  input logic swap_n,
 
   /* Mac write channel */
   input logic mac_w_en_n,
@@ -29,18 +28,12 @@ module execute (
   input  logic [ 7:0]       rbuf_r_addr,
   output logic [15:0][15:0] rbuf_r_data
 );
-  logic rbuf_swap_ready, rbuf_swap_valid;
   logic [15:0][15:0] rbuf_w_data;
-
-  // Swapping logic
-  assign swap_ready = rbuf_swap_ready;
-  wire mac_swap_n = swap_valid;
-
   mac16x16 mac (
     .clock  (clock),
     .reset_n(reset_n),
 
-    .swap_n (mac_swap_n),
+    .swap_n (swap_n),
 
     .w_en_n (mac_w_en_n),
     .w_col  (mac_w_col),
@@ -73,8 +66,7 @@ module execute (
     .reset_n(reset_n),
 
     /* Swap channel */
-    .swap_ready(rbuf_swap_ready),
-    .swap_valid(rbuf_swap_valid),
+    .swap_n(swap_n),
 
     /* Write channel */
     .w_en_n(rbuf_w_en_n_ff),
