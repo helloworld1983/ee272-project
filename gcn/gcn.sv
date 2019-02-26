@@ -43,7 +43,6 @@ module gcn #(
 logic [15:0]  rd_data_UNCONNECTED [0:7];
 logic [15:0]  wr_data_UNCONNECTED [0:7];
 
-/*
 
 iocntl
 iocntl (
@@ -73,7 +72,6 @@ iocntl (
   .ram2cntl_r_ready(), // FIXME connect with DRAM
   .ram2cntl_r_data(32'b0) // FIXME connect with DRAM
 );
-*/
 
 
 /* BACKEND */
@@ -82,16 +80,16 @@ iocntl (
 // Between dram2gb_cntl and swaparbitrator
 logic swap;
 // Between dram2gb_cntl and globalbuffer
-logic [NUM_WGT_RBANK-1:0][$clog2(WGT_DEPTH)-1:0]                   wgt_raddr;
+logic [NUM_WGT_RBANK-1:0][BATCH_SIZE-1:0]                   wgt_raddr;
 logic [NUM_WGT_RBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_ren;
 logic [NUM_WGT_RBANK-1:0][WGT_WIDTH-1:0]                           wgt_rdata;
-logic [NUM_WGT_WBANK-1:0][$clog2(WGT_DEPTH)-1:0]                   wgt_waddr;
+logic [NUM_WGT_WBANK-1:0][BATCH_SIZE-1:0]                   wgt_waddr;
 logic [NUM_WGT_WBANK-1:0][$clog2(NUM_WGT_RBANK+NUM_WGT_WBANK)-1:0] wgt_wen;
 logic [NUM_WGT_WBANK-1:0][WGT_WIDTH-1:0]                           wgt_wdata;
-logic [NUM_ACT_RBANK-1:0][$clog2(ACT_DEPTH)-1:0]                   act_raddr;
+logic [NUM_ACT_RBANK-1:0][BATCH_SIZE-1:0]                   act_raddr;
 logic [NUM_ACT_RBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_ren;
 logic [NUM_ACT_RBANK-1:0][ACT_WIDTH-1:0]                           act_rdata;
-logic [NUM_ACT_WBANK-1:0][$clog2(ACT_DEPTH)-1:0]                   act_waddr;
+logic [NUM_ACT_WBANK-1:0][BATCH_SIZE-1:0]                   act_waddr;
 logic [NUM_ACT_WBANK-1:0][$clog2(NUM_ACT_RBANK+NUM_ACT_WBANK)-1:0] act_wen;
 logic [NUM_ACT_WBANK-1:0][ACT_WIDTH-1:0]                           act_wdata;
 // Between dram2gb_cntl and iocntl
@@ -114,7 +112,6 @@ logic mac_done; // FIXME: connect to mac array
 
 assign process_done = mac_done;
 
-/*
 dram2gb_cntl 
 #(
   .BATCH_SIZE(BATCH_SIZE),
@@ -140,7 +137,6 @@ swaparbitrator
 ) swaparbitrator (
   .*
 );
-*/
 
 globalbuffer
 #(
@@ -148,13 +144,15 @@ globalbuffer
   .NUM_WGT_WBANK(NUM_WGT_WBANK),
   .NUM_ACT_RBANK(NUM_ACT_RBANK),
   .NUM_ACT_WBANK(NUM_ACT_WBANK),
-  .WGT_DEPTH(WGT_DEPTH),
+  .WGT_DEPTH(BATCH_SIZE),
   .WGT_WIDTH(WGT_WIDTH),
-  .ACT_DEPTH(ACT_DEPTH),
+  .ACT_DEPTH(BATCH_SIZE),
   .ACT_WIDTH(ACT_WIDTH)
 ) globalbuffer (
   .*
 );
+
+// gb2execute_cntl goes here
 
 execute
 execute (
