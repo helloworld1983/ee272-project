@@ -1,7 +1,12 @@
 puts "Info: Running script [info script]"
 
-# The name of the top-level design
-set DESIGN_NAME "execute"
+# Top level desgin should have already been defined
+if {![info exists DESIGN_NAME]} {
+  puts "Error: DESIGN_NAME is not defined."
+  puts "       Make sure the scripts have been sourced in the correct order"
+  exit 1
+}
+
 # Absolute path prefix variable for library/design data
 set DESIGN_REF_DATA_PATH [file normalize "../.."]
 # Absolute path prefix variable for scripts

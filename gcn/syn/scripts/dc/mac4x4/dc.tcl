@@ -1,4 +1,4 @@
-source "../scripts/dc/dc_setup.tcl"
+source "../scripts/dc/mac4x4/dc_setup.tcl"
 
 # Design Compiler must be run in topographical mode for SPG flow support
 # SPG also requires a license for Design Compiler Graphical
@@ -132,7 +132,7 @@ set_app_var spg_enable_via_resistance_support true
 
 # The following variable, when set to true, runs additional optimizations to
 # improve the timing of the design at the cost of additional run time.
-set_app_var compile_timing_high_effort true
+# set_app_var compile_timing_high_effort true
 
 # The following variable enables a mode of coarse placement in which cells are not distributed  
 # evenly  across the surface but are allowed to clump together for better QoR     
@@ -194,7 +194,7 @@ if {[file exists [which ${LIBRARY_DONT_USE_PRE_INCR_COMPILE_LIST}]]} {
 ###############################################################################
 # Incremental compile
 ###############################################################################
-compile_ultra -incramental -spg -retime -gate_clock
+compile_ultra -incremental -spg -retime -gate_clock
 
 # Remove paths created by create_auto_path_groups
 remove_auto_path_groups
@@ -204,7 +204,7 @@ remove_auto_path_groups
 optimize_netlist -area
 
 ###############################################################################
-# Write out final design
+# Change nameing
 ###############################################################################
 # If this will be a sub-block in a hierarchical design, uniquify with block
 # unique names to avoid name collisions when integrating the design at the top
@@ -214,6 +214,16 @@ uniquify -force
 
 change_names -rules verilog -hierarchy
 
+###############################################################################
+# Subblock Abstraction
+###############################################################################
+if {(${DC_BLOCK_ABSTRACTION_DESIGNS} != "") || (${DC_BLOCK_ABSTRACTION_DESIGNS_TIO} != "")} {
+  create_block_abstraction
+}
+
+###############################################################################
+# Write out final design
+###############################################################################
 # Write out ICC2 files
 write_icc2_files -force  -output ${RESULTS_DIR}/${DCRM_FINAL_DESIGN_ICC2}
 

@@ -1,4 +1,5 @@
 puts "Info: Running script [info script]"
+
 source ../scripts/common/common_setup.tcl
 source ../scripts/dc/dc_setup_filenames.tcl
 
@@ -6,6 +7,26 @@ if {![shell_is_in_topographical_mode]} {
   puts "Error: dc_shell must be run in topographical mode."
   exit 1
 }
+
+##########################################################################################
+# Hierarchical Flow Blocks
+##########################################################################################
+# Each of the hierarchical designs specified in ${HIERARCHICAL_DESIGNS} in the common_setup.tcl file
+# should be added to only one of the lists below:
+
+# List of Design Compiler hierarchical design names (.ddc will be read)
+set DDC_HIER_DESIGNS ""
+
+# List of Design Compiler block abstraction hierarchical designs (.ddc will be read)
+# without transparent interface optimization
+set DC_BLOCK_ABSTRACTION_DESIGNS ""
+
+# List of Design Compiler block abstraction hierarchical designs
+# with transparent interface optimization
+set DC_BLOCK_ABSTRACTION_DESIGNS_TIO "mac4x4"
+
+# List of IC Compiler block abstraction hierarchical design names (Milkyway will be read)
+set ICC_BLOCK_ABSTRACTION_DESIGNS ""
 
 #################################################################################
 # Setup Variables
