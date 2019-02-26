@@ -6,6 +6,19 @@
 //  -- ACT: 1 read-only bank (active with mac), 1 write-only bank (active with mac), and 1 r/w bank (active with dram)
 //
 // FIXME: super general and thus may be costly for area. Should explore rewriting to be more specific.
+//
+// define _BATCH_SIZE     128
+// define _NUM_FEAT       256 // We define hidden layer to be same as I/O num features
+//
+// INPUT = (_NUM_FEAT*2, _BATCH_SIZE); // Embedding/features for current node
+//      sum(NGHBORs)+INPUT (each _NUM_FEATx_BATCH_SIZE) are concatenated into (_NUM_FEAT*2 x _BATCH_SIZE) matrix.
+//
+// WEIGHT = (_NUM_FEAT*2, _NUM_FEAT); // Set of neighbor weights (same for all neighbors)
+//      1st convolve: M = I_t * W = (_NUM_FEAT*2 x _BATCH_SIZE) ^ T * (_NUM_FEAT*2 x _NUM_FEAT) = (_BATCH_SIZE x _NUM_FEAT)
+//
+// ACTIVATE = (_NUM_FEAT, _NUM_FEAT); // Set of activations
+//      2nd convolve: O = M * A = (_BATCH_SIZE x _NUM_FEAT) * (_NUM_FEAT x _NUM_FEAT) = (_BATCH_SIZE x _NUM_FEAT)
+//
 // -------------------------------------------------------------------------------------------------------------------
 module globalbuffer #(
   parameter NUM_WGT_RBANK = 1,
@@ -14,7 +27,7 @@ module globalbuffer #(
   parameter NUM_ACT_WBANK = 1,
 
   parameter WGT_DEPTH = 256,
-  parameter WGT_WIDTH = 256,
+  parameter WGT_WIDTH = 512,
   parameter ACT_DEPTH = 256,
   parameter ACT_WIDTH = 256
 ) (
@@ -88,9 +101,32 @@ for (n = 0 ; n < NUM_WGT_WBANK ; n++) begin
 end
 endgenerate
 
-genvar o;
+localparam int SRAM_DEPTH_WGT = 256;
+localparam int SRAM_WIDTH_WGT = 128;
+localparam int SRAM_DSPLIT_WGT = WGT_DEPTH / SRAM_DEPTH_WGT;
+localparam int SRAM_WSPLIT_WGT = WGT_WIDTH / SRAM_WIDTH_WGT;
+
+genvar o, p;
 generate
-for (o = 0 ; o < (NUM_WGT_RBANK+NUM_WGT_WBANK) ; o++) begin
+for (o = 0 ; o < (NUM_WGT_RBANK+NUM_WGT_WBANK) ; o++) begin : GEN_SRAM_WGT
+    for (p = 0 ; p < SRAM_WSPLIT_WGT ; p++) begin : GEN_SRAM_WGT_WSPLIT
+      KW_ram_1rws_sram #(
+              .DATA_WIDTH(SRAM_WIDTH_WGT),
+              .DEPTH     (SRAM_DEPTH_WGT))
+      wgt_mem
+      (
+       .clock   (clock),
+       .reset_n (reset_n),
+       .cs_n    (1'b0),
+       .we_n    (wgt_wen_int[o] & wgt_wsel_int[o]),
+       .re_n    (wgt_ren_int[o] & wgt_rsel_int[o]),
+       .rw_addr (), //(bank_addr),
+       .data_in (wgt_wdata_int[o][(SRAM_WIDTH_WGT*(p+1)-1):(SRAM_WIDTH_WGT*p)]),
+       .data_out(wgt_rdata_int[o][(SRAM_WIDTH_WGT*(p+1)-1):(SRAM_WIDTH_WGT*p)])
+      );
+    end : GEN_SRAM_WGT_WSPLIT
+
+    /*
   floparray #(.DEPTH(WGT_DEPTH),
               .WIDTH(WGT_WIDTH))
   wgt_mem
@@ -103,7 +139,8 @@ for (o = 0 ; o < (NUM_WGT_RBANK+NUM_WGT_WBANK) ; o++) begin
    .wen       (wgt_wen_int[o] & wgt_wsel_int[o]),
    .wdata     (wgt_wdata_int[o])
   );
-end
+  */
+end : GEN_SRAM_WGT
 endgenerate
 
 
@@ -149,9 +186,32 @@ for (k = 0 ; k < NUM_ACT_WBANK ; k++) begin
 end
 endgenerate
 
-genvar l;
+localparam int SRAM_DEPTH_ACT = 256;
+localparam int SRAM_WIDTH_ACT = 128;
+localparam int SRAM_DSPLIT_ACT = ACT_DEPTH / SRAM_DEPTH_ACT;
+localparam int SRAM_WSPLIT_ACT = ACT_WIDTH / SRAM_WIDTH_ACT;
+
+genvar l, w;
 generate
-for (l = 0 ; l < (NUM_ACT_RBANK+NUM_ACT_WBANK) ; l++) begin
+for (l = 0 ; l < (NUM_ACT_RBANK+NUM_ACT_WBANK) ; l++) begin : GEN_SRAM_ACT
+    for (w = 0 ; w < SRAM_WSPLIT_ACT ; w++) begin : GEN_SRAM_ACT_WIDTH
+      KW_ram_1rws_sram #(
+              .DATA_WIDTH(SRAM_WIDTH_ACT),
+              .DEPTH     (SRAM_DEPTH_ACT))
+      act_mem
+      (
+       .clock   (clock),
+       .reset_n (reset_n),
+       .cs_n    (1'b0),
+       .we_n    (act_wen_int[l] & act_wsel_int[l]),
+       .re_n    (act_ren_int[l] & act_rsel_int[l]),
+       .rw_addr (), //(bank_addr),
+       .data_in (act_wdata_int[l][(SRAM_WIDTH_ACT*(w+1)-1):(SRAM_WIDTH_ACT*w)]),
+       .data_out(act_rdata_int[l][(SRAM_WIDTH_ACT*(w+1)-1):(SRAM_WIDTH_ACT*w)])
+      );
+    end : GEN_SRAM_ACT_WIDTH
+
+    /*
   floparray #(.DEPTH(ACT_DEPTH),
               .WIDTH(ACT_WIDTH))
   act_mem
@@ -164,7 +224,8 @@ for (l = 0 ; l < (NUM_ACT_RBANK+NUM_ACT_WBANK) ; l++) begin
    .wen       (act_wen_int[l] & act_wsel_int[l]),
    .wdata     (act_wdata_int[l])
   );
-end
+    */
+end : GEN_SRAM_ACT
 endgenerate
 
 

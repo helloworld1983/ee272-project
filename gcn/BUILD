@@ -41,6 +41,7 @@ sv_library(
         "globalbuffer.sv",
         "floparray.sv",
     ],
+    deps = ["//gcn/lib/sram:KW_sram"],
 )
 
 sv_library(
