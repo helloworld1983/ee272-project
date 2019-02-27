@@ -19,11 +19,11 @@ set DDC_HIER_DESIGNS ""
 
 # List of Design Compiler block abstraction hierarchical designs (.ddc will be read)
 # without transparent interface optimization
-set DC_BLOCK_ABSTRACTION_DESIGNS ""
+set DC_BLOCK_ABSTRACTION_DESIGNS "mac4x4"
 
 # List of Design Compiler block abstraction hierarchical designs
 # with transparent interface optimization
-set DC_BLOCK_ABSTRACTION_DESIGNS_TIO "mac4x4"
+set DC_BLOCK_ABSTRACTION_DESIGNS_TIO ""
 
 # List of IC Compiler block abstraction hierarchical design names (Milkyway will be read)
 set ICC_BLOCK_ABSTRACTION_DESIGNS ""
