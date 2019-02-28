@@ -40,11 +40,13 @@ link
 # Apply constraints
 ###############################################################################
 read_sdc ${DCRM_SDC_INPUT_FILE}
+source -echo -verbose ../scripts/dc/dc_routing.tcl
 source -echo -verbose ../scripts/dc/${DESIGN_NAME}/dc_physical_constraints.tcl
 
 # Verify that all the desired physical constraints have been applied
 # Add the -pre_route option to include pre-routes in the report
 report_physical_constraints > ${REPORTS_DIR}/${DCRM_DCT_PHYSICAL_CONSTRAINTS_REPORT}
+# report_ignored_layers
 
 ###############################################################################
 # First compile

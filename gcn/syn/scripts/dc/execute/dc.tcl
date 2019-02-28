@@ -120,6 +120,7 @@ set_app_var compile_enable_constant_propagation_with_no_boundary_opt false
 ###############################################################################
 # Our timing constraints are in a SDC file
 read_sdc ${DCRM_SDC_INPUT_FILE}
+source -echo -verbose ../scripts/dc/dc_routing.tcl
 source -echo -verbose ../scripts/dc/${DESIGN_NAME}/dc_physical_constraints.tcl
 
 # Verify that all the desired physical constraints have been applied

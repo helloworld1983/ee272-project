@@ -141,8 +141,25 @@ set MW_POWER_PORT  "VDD"
 set MW_GROUND_NET  "VSS"
 set MW_GROUND_PORT "VSS"
 
+################################################################################
+# Routing
+################################################################################
 # Max/Min layers for routing
 set MIN_ROUTING_LAYER "M2"
 set MAX_ROUTING_LAYER "M8"
+
+# List of the preferred routing directions for each layer
+# Order is "layer name" "direction" "offset"
+#   direction is one of "vertical" or "horizontal"
+#   offset is optional
+# Example with offsets
+#   "{M1 vertical 0.2} {M2 horizontal 0.0} {M3 vertical 0.2}"
+# Example without offsets
+#   "{M1 vertical} {M2 horizontal} {M3 vertical}
+set ROUTING_LAYER_DIRECTION_OFFSET_LIST " \
+{M1 horizontal} {M2 vertical} {M3 horizontal} {M4 vertical} \
+{M5 horizontal} {M6 vertical} {M7 horizontal} {M8 vertical} \
+{M9 horizontal} {MRDL vertical} \
+"
 
 puts "Info: Completed script [info script]"
