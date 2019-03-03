@@ -18,8 +18,8 @@ set_max_delay 2.000 -from reset_n
 ###############################################################################
 # Driving cell is minimum sized inverter
 set_driving_cell -no_design_rule -lib_cell INVX1_HVT -library saed32hvt_ss0p95v125c [all_inputs]
-set_input_delay -clock CLOCK -min 0.00 [all_inputs]
 set_input_delay -clock CLOCK -max 0.08 [all_inputs]
+set_input_delay -clock CLOCK -min 0.00 [all_inputs]
 
 ###############################################################################
 # Outputs
