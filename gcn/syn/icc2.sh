@@ -9,7 +9,7 @@ if  [ -z $SYNOPSYSICC ]; then
 fi
 export ICC_BIN_PATH="$SYNOPSYSICC/bin/icc_shell"
 
-# Note that the syn module must be loaded before dc can run
+# Note that the icc2 module must be loaded before icc2 can run
 # Uncomment the following lines if it's not done already
 # export MODULESHOME=/cad/modules/tcl
 # source $MODULESHOME/init/bash.in
