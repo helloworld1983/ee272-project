@@ -1,5 +1,4 @@
 load("//tools:verilog.bzl", "sv_library")
-load("//tools/verilator:rules.bzl", "cc_sv_library_verilator")
 
 sv_library(
     name = "SRAM1RW",
@@ -16,16 +15,4 @@ sv_library(
     ],
     deps = [":SRAM1RW"],
     visibility = ["//gcn:__subpackages__"],
-)
-
-cc_sv_library_verilator(
-    name = "KW_sram_cc",
-    top = "KW_ram_1rws_sram",
-    deps = [":KW_sram"],
-)
-
-cc_sv_library_verilator(
-    name = "KW_dff_cc",
-    top = "KW_ram_1rws_dff",
-    deps = [":KW_sram"],
 )
