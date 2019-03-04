@@ -5,8 +5,9 @@ build --experimental_guard_against_concurrent_changes
 build --experimental_cc_skylark_api_enabled_packages=@gcn//tools,tools
 
 # Force new style behavior
-#build --all_incompatible_changes
+build --all_incompatible_changes
 build --noincompatible_disable_legacy_crosstool_fields
+build --noincompatible_enable_cc_toolchain_resolution
 
 # Use c++17 for all builds
 build --cxxopt='-std=c++17'
