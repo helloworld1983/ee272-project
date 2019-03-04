@@ -172,15 +172,7 @@ module KW_asymfifo_s1_sf #(
   wire [RAM_DATA_WIDTH-1:0] wr_data;
   wire [RAM_ADDR_WIDTH-1:0] wr_addr;
 
-  reg [RAM_DATA_WIDTH-1:0] ram [0:DEPTH-1];
-  always_ff @(posedge clock or negedge reset_n) begin
-    if (reset_n) begin
-      if (~we_n)
-        ram[wr_addr] <= wr_data;
-      rd_data <= ram[rd_addr];
-    end
-  end
-
+`ifndef SYNTHESIS
   always_ff @(posedge clock or negedge reset_n) begin
     if (~reset_n) begin
       $display("RESET");
@@ -188,6 +180,16 @@ module KW_asymfifo_s1_sf #(
       if (~push_req_n) $display("Pushing %h @ %h (we_n == %1d)", wr_data, wr_addr, we_n);
       if (~pop_req_n) $display("Popping %h @ %h", ram[rd_addr], rd_addr);
       if (error)      $display("ERROR");
+    end
+  end
+`endif
+
+  reg [RAM_DATA_WIDTH-1:0] ram [0:DEPTH-1];
+  always_ff @(posedge clock or negedge reset_n) begin
+    if (reset_n) begin
+      if (~we_n)
+        ram[wr_addr] <= wr_data;
+      rd_data <= ram[rd_addr];
     end
   end
 
@@ -198,7 +200,7 @@ module KW_asymfifo_s1_sf #(
     .AF_LEVEL      (AF_LEVEL),
     .AE_LEVEL      (AE_LEVEL),
     .ERR_MODE      (ERR_MODE),
-    .RAM_DATA_WIDTH(RAM_DATA_WIDTH),
+    .RAM_DATA_WIDTH(RAM_DATA_WIDTH)
   ) fifo (
     .clock, .reset_n,
 

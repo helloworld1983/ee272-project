@@ -19,7 +19,6 @@ module KW_ram_1rws_dff #(
   /* Port 1 control */
   input logic cs_n,
   input logic we_n,
-  input logic re_n,
 
   /* Port 1 datapath */
   input  logic [ADDR_WIDTH-1:0] rw_addr,
@@ -27,7 +26,7 @@ module KW_ram_1rws_dff #(
   output logic [DATA_WIDTH-1:0] data_out
 );
   logic [DEPTH-1:0][DATA_WIDTH-1:0] memory;
-  wire re = ~cs_n && ~re_n;
+  wire re = ~cs_n &&  we_n;
   wire we = ~cs_n && ~we_n;
 
   generate

@@ -15,20 +15,22 @@ module KW_ram_1rws_sram #(
   /* Port 1 control */
   input logic cs_n,
   input logic we_n,
-  input logic re_n,
 
   /* Port 1 datapath */
   input  logic [ADDR_WIDTH-1:0] rw_addr,
   input  logic [DATA_WIDTH-1:0] data_in,
   output logic [DATA_WIDTH-1:0] data_out
 );
+  // No output enable if either chip disabled or write enabled
+  wire oe_n = cs_n || !we_n;
+
   // Helper macro
 `define SRAM(n,w) \
   SRAM1RW``n``x``w sram_``n``x``w ( \
     .A  (rw_addr),  \
     .CE (clock),    \
     .WEB(we_n),     \
-    .OEB(re_n),     \
+    .OEB(oe_n),     \
     .CSB(cs_n),     \
     .I  (data_in),  \
     .O  (data_out)  \

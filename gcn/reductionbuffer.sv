@@ -54,7 +54,6 @@ module reductionbuffer (
           .reset_n (reset_n),
           .cs_n    (1'b0),
           .we_n    (bank_w_en_n),
-          .re_n    (bank_r_en_n),
           .rw_addr (bank_addr),
           .data_in (bank_data_in [j]),
           .data_out(bank_data_out[j])

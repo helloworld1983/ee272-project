@@ -48,7 +48,6 @@ module KW_dblbuf #(
     .reset_n (reset_n),
     .cs_n    (rw1_cs_n),
     .we_n    (rw1_we_n),
-    .re_n    (rw1_re_n),
     .rw_addr (rw1_addr),
     .data_in (rw1_data_in),
     .data_out(rw1_data_out)
@@ -62,7 +61,6 @@ module KW_dblbuf #(
     .reset_n (reset_n),
     .cs_n    (rw2_cs_n),
     .we_n    (rw2_we_n),
-    .re_n    (rw2_re_n),
     .rw_addr (rw2_addr),
     .data_in (rw2_data_in),
     .data_out(rw2_data_out)
@@ -87,14 +85,12 @@ module KW_dblbuf #(
 
     .rw1_cs_n(rw1_cs_n),
     .rw1_we_n(rw1_we_n),
-    .rw1_re_n(rw1_re_n),
     .rw1_addr(rw1_addr),
     .rw1_data_in(rw1_data_in),
     .rw1_data_out(rw1_data_out),
 
     .rw2_cs_n(rw2_cs_n),
     .rw2_we_n(rw2_we_n),
-    .rw2_re_n(rw2_re_n),
     .rw2_addr(rw2_addr),
     .rw2_data_in(rw2_data_in),
     .rw2_data_out(rw2_data_out)
