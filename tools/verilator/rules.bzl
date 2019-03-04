@@ -45,7 +45,10 @@ def _link_static_library(
     args.add_all(object_files)
     ctx.actions.run(
         outputs = [static_library],
-        inputs = depset(transitive = [depset(object_files), ctx.attr._cc_toolchain.files]),
+        inputs = depset(
+            items = object_files,
+            transitive = [ctx.attr._cc_toolchain.files],
+        ),
         executable = link_tool,
         arguments = [args],
         mnemonic = "StaticLink",
@@ -259,7 +262,6 @@ cc_sv_library_verilator = rule(
         ),
     },
     fragments = ["cpp"],
-    output_to_genfiles = True,
     implementation = _cc_sv_library_verilator_impl,
 )
 
