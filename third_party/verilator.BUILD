@@ -110,7 +110,7 @@ genrule(
     name = "verilated_config",
     outs = ["include/verilated_config.h"],
     cmd = """
-    echo '#define VERILATOR_PRODUCT "Verilator"\n#define VERILATOR_VERSION "4.008"' > $(@)
+    echo '#define VERILATOR_PRODUCT "Verilator"\n#define VERILATOR_VERSION "4.010"' > $(@)
     """,
 )
 

@@ -39,8 +39,8 @@ new_git_repository(
 verilator_archive(
     name = "verilator",
     build_file = "//third_party:verilator.BUILD",
-    sha256 = "d5cef6edd3bdb7754776d902daae7a7e5dd662baa7c7f895cb7028b1d6910cac",
-    version = "4.008",
+    sha256 = "5651748fe28e373ebf7a6364f5e7935ec9b39d29671f683f366e99d5e157d571",
+    version = "4.010",
 )
 
 http_archive(
