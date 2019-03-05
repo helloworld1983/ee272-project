@@ -20,18 +20,17 @@ cc_sv_library_verilator(
     deps = ["//gcn:execute"],
 )
 
-
 # Actual tests
 cc_test(
     name = "execute_test",
     srcs = ["execute_test.cpp"],
+    data = [
+        "testvectors/data.txt",
+    ],
     deps = [
         ":execute",
         ":verilator_driver",
         "@com_github_google_googletest//:gtest",
-        "@eigen//:eigen",
-    ],
-    data = [
-        "testvectors/data.txt",
+        "@eigen",
     ],
 )

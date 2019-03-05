@@ -189,16 +189,15 @@ cc_library(
         "include/gtkwave/fstapi.h",
         "include/gtkwave/lz4.h",
         "include/gtkwave/wavealloca.h",
-        "include/vltstd/svdpi.h",
-        "include/verilated_dpi.cpp",
         "include/verilated.cpp",
+        "include/verilated_dpi.cpp",
         "include/verilated_fst_c.cpp",
         "include/verilated_imp.h",
         "include/verilated_syms.h",
         "include/verilated_vcd_c.cpp",
+        "include/vltstd/svdpi.h",
     ],
     hdrs = [
-        ":include/verilated_config.h",
         "include/verilated.h",
         "include/verilated_dpi.h",
         "include/verilated_fst_c.h",
@@ -206,21 +205,22 @@ cc_library(
         "include/verilated_sym_props.h",
         "include/verilated_vcd_c.h",
         "include/verilatedos.h",
+        ":include/verilated_config.h",
     ],
-    strip_include_prefix = "include/",
-    visibility = ["//visibility:public"],
-    textual_hdrs = [
-        "include/gtkwave/fastlz.c",
-        "include/gtkwave/fstapi.c",
-        "include/gtkwave/lz4.c",
-    ],
-    includes = ["include"],
     copts = [
         # TODO: C++17 doesn't allow the register keyword.
         # This should probably be fixed another way
         "-Wno-deprecated-register",
         "-Dregister= ",
     ],
+    includes = ["include"],
+    strip_include_prefix = "include/",
+    textual_hdrs = [
+        "include/gtkwave/fastlz.c",
+        "include/gtkwave/fstapi.c",
+        "include/gtkwave/lz4.c",
+    ],
+    visibility = ["//visibility:public"],
     deps = [":svdpi"],
 )
 

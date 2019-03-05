@@ -7,7 +7,7 @@ cc_sv_library_verilator(
     trace = True,
     vopts = ["--assert"],
     deps = [
-        "//gcn:gcn",
+        "//gcn",
     ],
 )
 
@@ -20,4 +20,3 @@ cc_test(
         "@com_github_google_googletest//:gtest",
     ],
 )
-

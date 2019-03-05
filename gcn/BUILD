@@ -43,8 +43,8 @@ sv_library(
 sv_library(
     name = "globalbuffer",
     srcs = [
-        "globalbuffer.sv",
         "floparray.sv",
+        "globalbuffer.sv",
     ],
     deps = ["//gcn/lib/sram:KW_sram"],
 )
@@ -68,12 +68,12 @@ sv_library(
         "gcn.sv",
     ],
     deps = [
-        ":iocntl",
         ":dram2gb_cntl",
-        ":globalbuffer",
-        ":swaparbitrator",
-        ":gb2execute_cntl",
         ":execute",
+        ":gb2execute_cntl",
+        ":globalbuffer",
+        ":iocntl",
+        ":swaparbitrator",
     ],
 )
 
@@ -83,7 +83,7 @@ sv_library(
         "gcn_backend.sv",
     ],
     deps = [
-        ":globalbuffer",
         ":execute",
+        ":globalbuffer",
     ],
 )

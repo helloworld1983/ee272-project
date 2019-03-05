@@ -8,7 +8,7 @@ cc_sv_library_verilator(
     vopts = ["--assert"],
     deps = [
         "//gcn:iocntl",
-        "//gcn/sim/ram:ram",
+        "//gcn/sim/ram",
     ],
 )
 
@@ -22,4 +22,3 @@ cc_test(
         "@com_github_google_googletest//:gtest",
     ],
 )
-

@@ -20,4 +20,3 @@ cc_test(
         "@com_github_google_googletest//:gtest",
     ],
 )
-

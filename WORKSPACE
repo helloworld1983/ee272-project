@@ -18,15 +18,15 @@ git_repository(
 
 http_archive(
     name = "com_github_google_benchmark",
-    urls = ["https://github.com/google/benchmark/archive/16703ff83c1ae6d53e5155df3bb3ab0bc96083be.zip"],
-    strip_prefix = "benchmark-16703ff83c1ae6d53e5155df3bb3ab0bc96083be",
     sha256 = "59f918c8ccd4d74b6ac43484467b500f1d64b40cc1010daa055375b322a43ba3",
+    strip_prefix = "benchmark-16703ff83c1ae6d53e5155df3bb3ab0bc96083be",
+    urls = ["https://github.com/google/benchmark/archive/16703ff83c1ae6d53e5155df3bb3ab0bc96083be.zip"],
 )
 
 git_repository(
     name = "com_github_abseil_abseil-cpp",
-    remote = "https://github.com/abseil/abseil-cpp.git",
     commit = "d78310fe5a82f2e0e6e16509ef8079c8d7e4674e",
+    remote = "https://github.com/abseil/abseil-cpp.git",
 )
 
 new_git_repository(
@@ -45,7 +45,7 @@ verilator_archive(
 
 http_archive(
     name = "bazel_skylib",
-    url = "https://github.com/bazelbuild/bazel-skylib/archive/0.7.0.tar.gz",
     sha256 = "2c62d8cd4ab1e65c08647eb4afe38f51591f43f7f0885e7769832fa137633dcb",
-    strip_prefix = "bazel-skylib-0.7.0"
+    strip_prefix = "bazel-skylib-0.7.0",
+    url = "https://github.com/bazelbuild/bazel-skylib/archive/0.7.0.tar.gz",
 )

@@ -80,7 +80,7 @@ def _link_static_library(
     return struct(
         linking_context = merged_cc_info.linking_context,
         cc_linking_outputs = struct(
-          static_libraries = [static_library],
+            static_libraries = [static_library],
         ),
     )
 
@@ -136,10 +136,11 @@ def _only_cc(f):
 
 def _cc_sv_library_verilator_impl(ctx):
     """Produce a static library and C++ header files from a Verilog library"""
+
     # Gather all the Verilog source files, including transitive dependencies
     srcs = get_transitive_sources(
         ctx.files.srcs + ctx.files.hdrs,
-        ctx.attr.deps
+        ctx.attr.deps,
     )
 
     # Default Verilator output prefix (e.g. "Vtop")

@@ -6,8 +6,8 @@ sv_library(
         "KW_dblbuf.sv",
         "KW_dblbuf_cntl.sv",
     ],
-    deps = ["//gcn/lib/sram:KW_sram"],
     visibility = ["//gcn:__subpackages__"],
+    deps = ["//gcn/lib/sram:KW_sram"],
 )
 
 sv_library(

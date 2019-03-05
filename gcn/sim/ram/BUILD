@@ -10,15 +10,15 @@ sv_library(
 cc_library(
     name = "ram_dpi",
     srcs = [
-        "ram_dpi.cpp",
         "ram.cpp",
+        "ram_dpi.cpp",
     ],
     hdrs = ["ram.h"],
+    visibility = ["//gcn:__subpackages__"],
     deps = [
         "@com_github_abseil_abseil-cpp//absl/container:flat_hash_map",
         "@verilator//:svdpi",
     ],
-    visibility = ["//gcn:__subpackages__"],
 )
 
 cc_sv_library_verilator(
@@ -29,13 +29,12 @@ cc_sv_library_verilator(
     deps = [":ram"],
 )
 
-
 cc_test(
     name = "ram_test",
     srcs = ["ram_test.cpp"],
     deps = [
-        ":ram_dpi",
         ":ram_cc_sv",
+        ":ram_dpi",
         "//gcn/test:verilator_driver",
         "@com_github_abseil_abseil-cpp//absl/container:flat_hash_map",
         "@com_github_google_googletest//:gtest",
